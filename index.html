@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaterialQR - Gestão Industrial na Nuvem</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #area-impressao, #area-impressao * { visibility: visible; }
+            #area-impressao {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .no-print { display: none !important; }
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border-left-color: #6366f1;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-full bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative">
+
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-50 no-print" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.limparEVoltar()">
+                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-industry text-xl"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent block">MaterialQR</span>
+                    <span class="text-[10px] text-emerald-400 font-mono block -mt-1" id="status-nuvem"><i class="fa-solid fa-cloud text-[9px] mr-1"></i>Sincronizado na Nuvem</span>
+                </div>
+            </div>
+            <nav class="flex space-x-2">
+                <button onclick="window.switchTab('cadastro')" id="btn-tab-cadastro" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/20 flex items-center">
+                    <i class="fa-solid fa-plus-circle mr-1.5"></i> Cadastrar
+                </button>
+                <button onclick="window.switchTab('historico')" id="btn-tab-historico" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 bg-slate-700 hover:bg-slate-600 text-slate-300 flex items-center">
+                    <i class="fa-solid fa-database mr-1.5"></i> Histórico
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 relative">
+        
+        <div id="mensagem-sistema" class="hidden max-w-3xl mx-auto mb-4 p-4 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg relative no-print">
+            <div class="flex items-center">
+                <i id="msg-icon" class="mr-3 text-lg"></i>
+                <span id="msg-texto"></span>
+            </div>
+            <button onclick="window.fecharMensagem()" class="absolute top-4 right-4 text-white opacity-70 hover:opacity-100"><i class="fa-solid fa-times"></i></button>
+        </div>
+
+        <div id="tab-cadastro" class="space-y-6">
+            <div class="max-w-3xl mx-auto bg-slate-800/50 backdrop-blur border border-slate-700/60 rounded-3xl p-6 sm:p-8 shadow-xl">
+                
+                <div class="mb-6 pb-4 border-b border-slate-700/60 flex justify-between items-center">
+                    <div>
+                        <h2 id="form-titulo" class="text-xl font-bold text-white flex items-center">
+                            <i class="fa-solid fa-box-open text-indigo-400 mr-3"></i> Registrar / Editar Material
+                        </h2>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Gere um QR Code permanente com sincronização em nuvem!</p>
+                    </div>
+                    <button id="btn-cancelar-edicao" onclick="window.cancelarEdicao()" class="hidden text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-slate-300 transition">
+                        Cancelar Edição
+                    </button>
+                </div>
+
+                <form id="form-material" onsubmit="event.preventDefault(); window.processarFormulario();" class="space-y-5">
+                    <input type="hidden" id="mat-id">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Material / Nome *</label>
+                            <input type="text" id="mat-nome" required placeholder="Ex: Chapa de Aço Inox 304" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Dimensões *</label>
+                            <input type="text" id="mat-dimensoes" required placeholder="Ex: 2000x1000x3mm" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">O.S (Ordem de Serviço) *</label>
+                            <input type="text" id="mat-os" required placeholder="Ex: OS-2026-1042" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nº do Laudo / Certificado</label>
+                            <input type="text" id="mat-certificado" placeholder="Ex: CQA-9988 (Opcional)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Anexo do Certificado (PDF max 750KB)</label>
+                            <div class="relative">
+                                <input type="file" id="mat-pdf-file" accept="application/pdf" class="hidden" onchange="window.lidarUploadPdf(event)">
+                                <label for="mat-pdf-file" class="w-full bg-slate-900 border border-dashed border-slate-600 hover:border-indigo-500 rounded-xl px-4 py-2.5 text-slate-300 flex items-center justify-center cursor-pointer transition text-sm">
+                                    <i class="fa-solid fa-file-pdf text-red-400 mr-2 text-base"></i>
+                                    <span id="label-pdf-nome">Carregar PDF (Opcional)</span>
+                                </label>
+                            </div>
+                            <div id="pdf-preview-box" class="hidden mt-2 flex items-center justify-between bg-slate-900/80 p-2.5 px-3 rounded-xl border border-slate-700 text-xs">
+                                <span id="pdf-status-txt" class="text-emerald-400 truncate mr-2 font-medium"><i class="fa-solid fa-check-circle mr-1"></i> PDF anexado</span>
+                                <button type="button" onclick="window.removerPdfAnexo()" class="text-slate-400 hover:text-red-400 font-bold px-1.5 py-0.5 rounded transition" title="Remover PDF"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Aplicação / Destino *</label>
+                            <textarea id="mat-aplicacao" required rows="2" placeholder="Ex: Montagem da estrutura principal do equipamento." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t border-slate-700/50 mt-4">
+                        <button type="submit" id="btn-submit" class="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition transform active:scale-95 flex items-center">
+                            <span id="submit-spinner" class="spinner mr-2 hidden"></span>
+                            <i id="submit-icon" class="fa-solid fa-qrcode mr-2"></i> Salvar Dados & Gerar QR Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="card-qr-gerado" class="hidden max-w-sm mx-auto bg-slate-800/50 backdrop-blur border border-slate-700/60 rounded-3xl p-6 shadow-xl text-center">
+                <div class="flex items-center justify-between mb-4 no-print border-b border-slate-700 pb-2">
+                    <span class="uppercase tracking-widest text-xs font-bold text-indigo-400">Etiqueta QR Code</span>
+                    <button class="hover:text-white flex items-center px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-sm rounded-lg transition" onclick="window.print()" title="Imprimir Etiqueta">
+                        <i class="fa-solid fa-print mr-2"></i> Imprimir
+                    </button>
+                </div>
+                
+                <div id="area-impressao" class="flex justify-center items-center py-2">
+                    <div class="bg-white text-slate-900 p-4 rounded-xl shadow-md border-2 border-slate-300 flex flex-col items-center w-56">
+                        <span class="font-mono text-base font-extrabold tracking-tight text-slate-900 block break-words w-full text-center mb-2 pb-1 border-b-2 border-slate-200" id="etq-os-preview">OS-000</span>
+                        <div id="qrcode-container" class="inline-block bg-white p-1"></div>
+                    </div>
+                </div>
+                
+                <p class="text-[11px] text-slate-400 mt-4 no-print"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> QR Code Permanente! Qualquer alteração futura neste cadastro será atualizada na nuvem sem precisar reimprimir esta etiqueta.</p>
+            </div>
+        </div>
+
+        <div id="tab-historico" class="hidden space-y-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <i class="fa-solid fa-database text-cyan-400 mr-3"></i> Histórico de Materiais Cadastrados
+                    </h2>
+                    <button onclick="window.carregarHistoricoNuvem()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-full border border-slate-700 text-slate-300 transition">
+                        <i class="fa-solid fa-rotate mr-1"></i> Atualizar
+                    </button>
+                </div>
+                
+                <div id="lista-historico" class="space-y-3">
+                    <!-- Registros injetados via JS -->
+                </div>
+                
+                <div id="empty-state" class="hidden bg-slate-800/30 border border-slate-700/50 rounded-2xl p-10 text-center">
+                    <i class="fa-solid fa-box-archive text-4xl text-slate-600 mb-3"></i>
+                    <h3 class="text-lg font-medium text-slate-300">Nenhum material registrado no histórico</h3>
+                    <p class="text-slate-500 text-sm mt-1">Cadastre um material para salvá-lo na nuvem e gerar sua etiqueta QR Code.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-visualizacao" class="hidden space-y-6">
+            <div class="max-w-2xl mx-auto">
+                <div id="view-loading" class="text-center py-12">
+                    <div class="spinner mx-auto mb-3" style="width: 40px; height: 40px;"></div>
+                    <p class="text-slate-400 text-sm">Buscando dados sincronizados da nuvem...</p>
+                </div>
+
+                <div id="view-content" class="hidden bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    
+                    <div class="flex items-start justify-between border-b border-slate-700/60 pb-5">
+                        <div class="pr-4 w-full">
+                            <span id="view-os" class="inline-block bg-indigo-500/10 text-indigo-400 text-sm font-semibold px-3 py-1 rounded-lg mb-2 font-mono border border-indigo-500/20">OS: ---</span>
+                            <h2 id="view-nome" class="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words leading-tight">Carregando...</h2>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/40">
+                                <div class="flex items-center text-slate-300 mb-1">
+                                    <i class="fa-solid fa-ruler-combined text-indigo-400 mr-2 text-sm w-4"></i>
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Dimensões</span>
+                                </div>
+                                <p id="view-dimensoes" class="text-base font-medium text-white pl-6">---</p>
+                            </div>
+
+                            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/40">
+                                <div class="flex items-center text-slate-300 mb-1">
+                                    <i class="fa-solid fa-certificate text-yellow-400 mr-2 text-sm w-4"></i>
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Certificado / Laudo</span>
+                                </div>
+                                <p id="view-certificado" class="text-base font-medium text-white pl-6">---</p>
+                            </div>
+                        </div>
+
+                        <!-- Box do PDF -->
+                        <div id="box-btn-pdf" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-red-500/40 space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-red-500/20 p-2.5 rounded-xl text-red-400 shrink-0">
+                                    <i class="fa-solid fa-file-pdf text-2xl"></i>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <h4 class="text-sm font-bold text-white truncate" id="view-pdf-nome">Certificado_Qualidade.pdf</h4>
+                                    <p class="text-xs text-slate-400">Documento PDF Anexado</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                <button id="btn-view-pdf" type="button" class="w-full bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-md cursor-pointer">
+                                    <i class="fa-solid fa-eye mr-2 text-cyan-400 text-sm"></i> Visualizar PDF
+                                </button>
+                                <button id="btn-download-pdf" type="button" class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-lg shadow-red-600/30 cursor-pointer">
+                                    <i class="fa-solid fa-download mr-2 text-sm"></i> Baixar PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/50 p-5 rounded-2xl border border-slate-700/40">
+                            <div class="flex items-center text-slate-300 mb-2">
+                                <i class="fa-solid fa-bullseye text-cyan-400 mr-2 text-sm w-4"></i>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Aplicação / Destino</span>
+                            </div>
+                            <p id="view-aplicacao" class="text-base text-slate-200 pl-6 leading-relaxed">---</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between border-t border-slate-700/60 no-print">
+                        <button onclick="window.switchTab('historico')" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 px-5 rounded-xl transition text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-database mr-2"></i> Ver Histórico Completo
+                        </button>
+                        <button onclick="window.limparEVoltar()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl transition text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-plus-circle mr-2"></i> Cadastrar Novo Material
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="modal-pdf-viewer" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex-col z-[150] no-print p-3 sm:p-6">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full h-full flex flex-col overflow-hidden max-w-5xl mx-auto shadow-2xl">
+            <div class="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-900 shrink-0">
+                <div class="flex items-center space-x-2 truncate pr-2">
+                    <i class="fa-solid fa-file-pdf text-red-500 text-xl shrink-0"></i>
+                    <span id="modal-pdf-title" class="font-bold text-white text-sm sm:text-base truncate">Certificado.pdf</span>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button id="btn-modal-pdf-download" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-xl font-medium transition flex items-center">
+                        <i class="fa-solid fa-download mr-1.5"></i> <span class="hidden sm:inline">Baixar</span>
+                    </button>
+                    <button onclick="window.fecharModalPdf()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white text-xs p-2.5 rounded-xl transition">
+                        <i class="fa-solid fa-xmark text-lg px-1"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-grow bg-slate-950 p-2 relative">
+                <iframe id="pdf-modal-iframe" class="w-full h-full rounded-xl border border-slate-800 bg-white" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[100] no-print p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2">Excluir Material?</h3>
+            <p class="text-sm text-slate-400 mb-6">Esta ação removerá o material da nuvem e do histórico permanentemente.</p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="window.fecharModalConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 transition">Cancelar</button>
+                <button id="btn-confirm-delete" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition shadow-lg shadow-red-600/20">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CLOUD_API_BASE = "https://jsonblob.com/api/jsonBlob";
+        const DB_NAME = "MaterialQR_DB_v8";
+        const STORE_NAME = "materiais";
+
+        let pdfDataAtual = null;
+        let pdfNomeAtual = null;
+
+        function abrirIndexedDB() {
+            return new Promise((resolve) => {
+                try {
+                    const req = indexedDB.open(DB_NAME, 1);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: "id" });
+                        }
+                    };
+                    req.onsuccess = (e) => resolve(e.target.result);
+                    req.onerror = () => resolve(null);
+                } catch(err) {
+                    resolve(null);
+                }
+            });
+        }
+
+        async function salvarLocalDB(item) {
+            try {
+                localStorage.setItem("mat_" + item.id, JSON.stringify(item));
+                let list = JSON.parse(localStorage.getItem("mat_keys") || "[]");
+                if (!list.includes(item.id)) {
+                    list.push(item.id);
+                    localStorage.setItem("mat_keys", JSON.stringify(list));
+                }
+            } catch(e) {}
+
+            try {
+                const db = await abrirIndexedDB();
+                if (db) {
+                    const tx = db.transaction(STORE_NAME, "readwrite");
+                    tx.objectStore(STORE_NAME).put(item);
+                }
+            } catch(e) {}
+        }
+
+        async function obterPorIdDB(id) {
+            try {
+                const db = await abrirIndexedDB();
+                if (db) {
+                    const res = await new Promise((resolve) => {
+                        const tx = db.transaction(STORE_NAME, "readonly");
+                        const req = tx.objectStore(STORE_NAME).get(id);
+                        req.onsuccess = () => resolve(req.result || null);
+                        req.onerror = () => resolve(null);
+                    });
+                    if (res) return res;
+                }
+            } catch(e) {}
+
+            try {
+                const raw = localStorage.getItem("mat_" + id);
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+
+            return null;
+        }
+
+        async function obterTodosDB() {
+            let itemsMap = new Map();
+
+            try {
+                const keys = JSON.parse(localStorage.getItem("mat_keys") || "[]");
+                for (const k of keys) {
+                    const raw = localStorage.getItem("mat_" + k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        itemsMap.set(parsed.id, parsed);
+                    }
+                }
+            } catch(e) {}
+
+            try {
+                const db = await abrirIndexedDB();
+                if (db) {
+                    const idbItems = await new Promise((resolve) => {
+                        const tx = db.transaction(STORE_NAME, "readonly");
+                        const req = tx.objectStore(STORE_NAME).getAll();
+                        req.onsuccess = () => resolve(req.result || []);
+                        req.onerror = () => resolve([]);
+                    });
+                    idbItems.forEach(item => itemsMap.set(item.id, item));
+                }
+            } catch(e) {}
+
+            return Array.from(itemsMap.values());
+        }
+
+        async function deletarDB(id) {
+            try {
+                localStorage.removeItem("mat_" + id);
+                let list = JSON.parse(localStorage.getItem("mat_keys") || "[]");
+                list = list.filter(k => k !== id);
+                localStorage.setItem("mat_keys", JSON.stringify(list));
+            } catch(e) {}
+
+            try {
+                const db = await abrirIndexedDB();
+                if (db) {
+                    const tx = db.transaction(STORE_NAME, "readwrite");
+                    tx.objectStore(STORE_NAME).delete(id);
+                }
+            } catch(e) {}
+        }
+
+        // FUNÇÃO CORRIGIDA PARA DEVOLVER O ID DE FORMA SEGURA
+        async function salvarNaNuvem(item) {
+            await salvarLocalDB(item);
+
+            try {
+                if (item.cloudId) {
+                    const res = await fetch(`${CLOUD_API_BASE}/${item.cloudId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(item)
+                    });
+                    if (!res.ok) throw new Error("Erro ao atualizar dados na nuvem");
+                    return item;
+                } else {
+                    const res = await fetch(CLOUD_API_BASE, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(item)
+                    });
+
+                    if (res.ok) {
+                        let cloudId = null;
+                        const locationHeader = res.headers.get('Location') || res.headers.get('location');
+                        const jsonblobIdHeader = res.headers.get('x-jsonblob-id') || res.headers.get('X-JsonBlob-Id');
+
+                        if (locationHeader) {
+                            cloudId = locationHeader.split('/').pop();
+                        } else if (jsonblobIdHeader) {
+                            cloudId = jsonblobIdHeader;
+                        }
+
+                        if (cloudId) {
+                            item.cloudId = cloudId;
+                            item.id = cloudId;
+                            await salvarLocalDB(item);
+                            
+                            await fetch(`${CLOUD_API_BASE}/${cloudId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                                body: JSON.stringify(item)
+                            });
+                        }
+                        return item;
+                    } else {
+                        console.warn("Erro da API na nuvem. Usando storage local.");
+                        return item;
+                    }
+                }
+            } catch(err) {
+                console.warn("Aviso de sincronização em nuvem:", err);
+                return item;
+            }
+        }
+
+        async function buscarDaNuvem(id) {
+            try {
+                const res = await fetch(`${CLOUD_API_BASE}/${id}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (res.ok) {
+                    const itemData = await res.json();
+                    if (itemData && (itemData.id || itemData.cloudId)) {
+                        await salvarLocalDB(itemData);
+                        return itemData;
+                    }
+                }
+            } catch(e) {
+                console.error("Erro ao buscar da nuvem:", e);
+            }
+            return await obterPorIdDB(id);
+        }
+
+        window.lidarUploadPdf = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.type !== "application/pdf") {
+                window.mostrarMensagem("Selecione um arquivo no formato PDF.", "erro");
+                e.target.value = "";
+                return;
+            }
+
+            if (file.size > 750 * 1024) {
+                window.mostrarMensagem(`O PDF deve ter no máximo 750 KB. Seu arquivo tem ${(file.size / 1024 / 1024).toFixed(2)} MB.`, "aviso");
+                e.target.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                pdfDataAtual = evt.target.result;
+                pdfNomeAtual = file.name;
+                
+                document.getElementById('label-pdf-nome').innerText = file.name;
+                document.getElementById('pdf-status-txt').innerHTML = `<i class="fa-solid fa-check-circle mr-1"></i> ${file.name}`;
+                document.getElementById('pdf-preview-box').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removerPdfAnexo = function() {
+            pdfDataAtual = null;
+            pdfNomeAtual = null;
+            document.getElementById('mat-pdf-file').value = "";
+            document.getElementById('label-pdf-nome').innerText = "Carregar PDF (Opcional)";
+            document.getElementById('pdf-preview-box').classList.add('hidden');
+        };
+
+        window.processarFormulario = async function() {
+            const nome = document.getElementById('mat-nome').value.trim();
+            const dimensoes = document.getElementById('mat-dimensoes').value.trim();
+            const os = document.getElementById('mat-os').value.trim();
+            const certificado = document.getElementById('mat-certificado').value.trim();
+            const aplicacao = document.getElementById('mat-aplicacao').value.trim();
+            let idDoc = document.getElementById('mat-id').value;
+
+            if (!nome || !dimensoes || !os || !aplicacao) {
+                window.mostrarMensagem("Preencha todos os campos obrigatórios (*).", "aviso");
+                return;
+            }
+
+            window.setLoadingState(true);
+
+            try {
+                let existingItem = null;
+                if (idDoc) {
+                    existingItem = await obterPorIdDB(idDoc);
+                }
+
+                const dataObj = { 
+                    id: idDoc || ('mat_temp_' + Date.now()),
+                    cloudId: existingItem ? existingItem.cloudId : null,
+                    nome, 
+                    dimensoes, 
+                    os, 
+                    certificado, 
+                    aplicacao,
+                    pdfData: pdfDataAtual || null,
+                    pdfNome: pdfNomeAtual || null,
+                    dataAtualizacao: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+                };
+
+                const itemSalvo = await salvarNaNuvem(dataObj);
+
+                window.setLoadingState(false);
+                window.mostrarMensagem("Material salvo! QR Code pronto.", "sucesso");
+                
+                window.gerarVisualizacaoQR(itemSalvo);
+                
+                document.getElementById('form-material').reset();
+                document.getElementById('mat-id').value = "";
+                window.removerPdfAnexo();
+                
+                document.getElementById('form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-400 mr-3"></i> Registrar / Editar Material`;
+                document.getElementById('btn-cancelar-edicao').classList.add('hidden');
+                document.getElementById('btn-submit').innerHTML = `<span id="submit-spinner" class="spinner mr-2 hidden"></span><i id="submit-icon" class="fa-solid fa-qrcode mr-2"></i> Salvar Dados & Gerar QR Code`;
+                
+            } catch(e) {
+                window.setLoadingState(false);
+                console.error(e);
+                window.mostrarMensagem("Erro inesperado ao processar os dados.", "erro");
+            }
+        };
+
+        window.gerarVisualizacaoQR = function(item) {
+            document.getElementById('etq-os-preview').textContent = item.os || "OS-000";
+            document.getElementById('qrcode-container').innerHTML = "";
+            document.getElementById('card-qr-gerado').classList.remove('hidden');
+            
+            const urlAtual = window.location.href.split('?')[0];
+            const targetId = item.cloudId || item.id;
+            const viewUrl = `${urlAtual}?view_id=${targetId}`;
+            
+            new QRCode(document.getElementById("qrcode-container"), {
+                text: viewUrl,
+                width: 160,
+                height: 160,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+        }
+
+        window.setLoadingState = function(isLoading) {
+            const btn = document.getElementById('btn-submit');
+            const spinner = document.getElementById('submit-spinner');
+            const icon = document.getElementById('submit-icon');
+            
+            if(isLoading) {
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                spinner.classList.remove('hidden');
+                icon.classList.add('hidden');
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                spinner.classList.add('hidden');
+                icon.classList.remove('hidden');
+            }
+        };
+
+        window.mostrarMensagem = function(texto, tipo = "info") {
+            const msgBox = document.getElementById('mensagem-sistema');
+            const msgTexto = document.getElementById('msg-texto');
+            const msgIcon = document.getElementById('msg-icon');
+            
+            msgBox.classList.remove('hidden', 'bg-red-500/90', 'bg-emerald-500/90', 'bg-amber-500/90', 'bg-blue-500/90');
+            msgTexto.textContent = texto;
+            
+            if(tipo === "sucesso") {
+                msgBox.classList.add('bg-emerald-500/90', 'text-white');
+                msgIcon.className = "fa-solid fa-circle-check mr-3 text-lg";
+            } else if (tipo === "erro") {
+                msgBox.classList.add('bg-red-500/90', 'text-white');
+                msgIcon.className = "fa-solid fa-circle-exclamation mr-3 text-lg";
+            } else if (tipo === "aviso") {
+                msgBox.classList.add('bg-amber-500/90', 'text-white');
+                msgIcon.className = "fa-solid fa-triangle-exclamation mr-3 text-lg";
+            } else {
+                msgBox.classList.add('bg-blue-500/90', 'text-white');
+                msgIcon.className = "fa-solid fa-circle-info mr-3 text-lg";
+            }
+            
+            setTimeout(() => { window.fecharMensagem(); }, 5000);
+        };
+        
+        window.fecharMensagem = function() {
+            document.getElementById('mensagem-sistema').classList.add('hidden');
+        };
+
+        window.limparEVoltar = function() {
+            window.location.href = window.location.href.split('?')[0];
+        };
+
+        window.switchTab = async function(tabId) {
+            document.getElementById('tab-cadastro').classList.add('hidden');
+            document.getElementById('tab-historico').classList.add('hidden');
+            document.getElementById('tab-visualizacao').classList.add('hidden');
+            
+            const btnCad = document.getElementById('btn-tab-cadastro');
+            const btnHist = document.getElementById('btn-tab-historico');
+
+            if(btnCad) {
+                btnCad.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
+                btnCad.classList.add('bg-slate-700', 'text-slate-300');
+            }
+            
+            if(btnHist) {
+                btnHist.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
+                btnHist.classList.add('bg-slate-700', 'text-slate-300');
+            }
+            
+            if(tabId === 'cadastro') {
+                document.getElementById('tab-cadastro').classList.remove('hidden');
+                if(btnCad) {
+                    btnCad.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
+                    btnCad.classList.remove('bg-slate-700', 'text-slate-300');
+                }
+            } 
+            else if(tabId === 'historico') {
+                document.getElementById('tab-historico').classList.remove('hidden');
+                if(btnHist) {
+                    btnHist.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
+                    btnHist.classList.remove('bg-slate-700', 'text-slate-300');
+                }
+                await window.carregarHistoricoNuvem();
+            }
+            else if(tabId === 'visualizacao') {
+                document.getElementById('tab-visualizacao').classList.remove('hidden');
+            }
+        };
+
+        window.carregarHistoricoNuvem = async function() {
+            const listaEl = document.getElementById('lista-historico');
+            const emptyEl = document.getElementById('empty-state');
+            
+            listaEl.innerHTML = `<div class="text-center py-8"><span class="spinner inline-block mx-auto"></span><p class="text-sm text-slate-400 mt-2">Carregando registros...</p></div>`;
+            
+            const itens = await obterTodosDB();
+            
+            if(itens.length === 0) {
+                listaEl.innerHTML = "";
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            
+            emptyEl.classList.add('hidden');
+            listaEl.innerHTML = "";
+            
+            itens.sort((a,b) => {
+                if(!a.dataAtualizacao) return 1;
+                if(!b.dataAtualizacao) return -1;
+                return b.dataAtualizacao.localeCompare(a.dataAtualizacao);
+            });
+            
+            itens.forEach(item => {
+                const targetId = item.cloudId || item.id;
+                const viewUrl = `${window.location.href.split('?')[0]}?view_id=${targetId}`;
+                
+                const cloudIcon = item.cloudId 
+                    ? `<span class="text-[10px] text-emerald-400 font-mono bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20" title="Sincronizado na nuvem"><i class="fa-solid fa-cloud mr-1"></i>Nuvem OK</span>`
+                    : `<span class="text-[10px] text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20"><i class="fa-solid fa-hard-drive mr-1"></i>Local</span>`;
+                
+                const pdfBadge = item.pdfData 
+                    ? `<span class="text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20" title="Contém PDF"><i class="fa-solid fa-file-pdf"></i></span>` 
+                    : "";
+
+                const el = document.createElement('div');
+                el.className = "bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:bg-slate-800";
+                
+                el.innerHTML = `
+                    <div class="flex-grow min-w-0">
+                        <div class="flex items-center space-x-2 mb-1.5">
+                            <span class="inline-block bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono tracking-wider border border-indigo-500/30">OS: ${item.os || '-'}</span>
+                            ${cloudIcon}
+                            ${pdfBadge}
+                        </div>
+                        <h3 class="font-bold text-white text-base sm:text-lg truncate">${item.nome}</h3>
+                        <p class="text-sm text-slate-400 truncate mt-0.5"><i class="fa-solid fa-ruler-combined mr-1.5 text-slate-500"></i> ${item.dimensoes}</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 shrink-0 border-t sm:border-t-0 border-slate-700/50 pt-3 sm:pt-0">
+                        <a href="${viewUrl}" class="flex-1 sm:flex-none text-center bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 px-3 py-2 rounded-xl text-xs font-semibold transition border border-cyan-500/30" target="_blank" title="Visualizar Página do QR">
+                            <i class="fa-solid fa-qrcode mr-1"></i> Ver
+                        </a>
+                        <button onclick="window.editarMaterial('${item.id}')" class="flex-1 sm:flex-none bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl text-xs font-semibold transition">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="window.confirmarExclusao('${item.id}', '${item.cloudId || ''}')" class="flex-1 sm:flex-none bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/20">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                listaEl.appendChild(el);
+            });
+        };
+
+        window.editarMaterial = async function(id) {
+            const item = await obterPorIdDB(id);
+            if(!item) {
+                window.mostrarMensagem("Erro ao carregar dados para edição.", "erro");
+                return;
+            }
+            
+            document.getElementById('mat-id').value = item.id;
+            document.getElementById('mat-nome').value = item.nome || "";
+            document.getElementById('mat-dimensoes').value = item.dimensoes || "";
+            document.getElementById('mat-os').value = item.os || "";
+            document.getElementById('mat-certificado').value = item.certificado || "";
+            document.getElementById('mat-aplicacao').value = item.aplicacao || "";
+            
+            if(item.pdfData) {
+                pdfDataAtual = item.pdfData;
+                pdfNomeAtual = item.pdfNome || "documento.pdf";
+                document.getElementById('label-pdf-nome').innerText = pdfNomeAtual;
+                document.getElementById('pdf-status-txt').innerHTML = `<i class="fa-solid fa-check-circle mr-1"></i> ${pdfNomeAtual}`;
+                document.getElementById('pdf-preview-box').classList.remove('hidden');
+            } else {
+                window.removerPdfAnexo();
+            }
+            
+            document.getElementById('form-titulo').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400 mr-3"></i> Editando Material`;
+            document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
+            document.getElementById('btn-submit').innerHTML = `<span id="submit-spinner" class="spinner mr-2 hidden"></span><i id="submit-icon" class="fa-solid fa-cloud-arrow-up mr-2"></i> Atualizar Registro`;
+            
+            document.getElementById('card-qr-gerado').classList.add('hidden');
+            
+            window.switchTab('cadastro');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        
+        window.cancelarEdicao = function() {
+            document.getElementById('form-material').reset();
+            document.getElementById('mat-id').value = "";
+            window.removerPdfAnexo();
+            
+            document.getElementById('form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-400 mr-3"></i> Registrar / Editar Material`;
+            document.getElementById('btn-cancelar-edicao').classList.add('hidden');
+            document.getElementById('btn-submit').innerHTML = `<span id="submit-spinner" class="spinner mr-2 hidden"></span><i id="submit-icon" class="fa-solid fa-qrcode mr-2"></i> Salvar Dados & Gerar QR Code`;
+            
+            document.getElementById('card-qr-gerado').classList.add('hidden');
+        };
+
+        let idParaExcluir = null;
+        let cloudIdParaExcluir = null;
+
+        window.confirmarExclusao = function(id, cloudId) {
+            idParaExcluir = id;
+            cloudIdParaExcluir = cloudId;
+            document.getElementById('modal-confirm').classList.remove('hidden');
+            document.getElementById('modal-confirm').classList.add('flex');
+        };
+
+        window.fecharModalConfirm = function() {
+            document.getElementById('modal-confirm').classList.add('hidden');
+            document.getElementById('modal-confirm').classList.remove('flex');
+            idParaExcluir = null;
+            cloudIdParaExcluir = null;
+        };
+        
+        document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
+            if(!idParaExcluir) return;
+            
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner inline-block mr-2" style="width: 14px; height: 14px; border-width: 2px;"></span> Excluindo...`;
+            btn.disabled = true;
+            
+            try {
+                if(cloudIdParaExcluir) {
+                    try {
+                         await fetch(`${CLOUD_API_BASE}/${cloudIdParaExcluir}`, { method: 'DELETE' });
+                    } catch(e) {}
+                }
+                
+                await deletarDB(idParaExcluir);
+                
+                window.mostrarMensagem("Registro excluído com sucesso.", "sucesso");
+                window.fecharModalConfirm();
+                
+                if(document.getElementById('mat-id').value === idParaExcluir) {
+                    window.cancelarEdicao();
+                }
+                
+                window.carregarHistoricoNuvem();
+                
+            } catch(e) {
+                window.mostrarMensagem("Erro ao excluir registro.", "erro");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function initApp() {
+            const params = new URLSearchParams(window.location.search);
+            const viewId = params.get('view_id');
+            
+            if (viewId) {
+                document.getElementById('main-header').classList.add('hidden');
+                window.switchTab('visualizacao');
+                
+                try {
+                    const item = await buscarDaNuvem(viewId);
+                    
+                    document.getElementById('view-loading').classList.add('hidden');
+                    
+                    if (item) {
+                        const contentBox = document.getElementById('view-content');
+                        contentBox.classList.remove('hidden');
+                        
+                        document.getElementById('view-os').textContent = `OS: ${item.os || 'N/A'}`;
+                        document.getElementById('view-nome').textContent = item.nome || 'Material Sem Nome';
+                        document.getElementById('view-dimensoes').textContent = item.dimensoes || 'N/A';
+                        document.getElementById('view-certificado').textContent = item.certificado || 'Nenhum laudo/certificado informado';
+                        document.getElementById('view-aplicacao').textContent = item.aplicacao || 'N/A';
+                        
+                        if(item.dataAtualizacao) {
+                            const pData = document.createElement('p');
+                            pData.className = "text-[10px] text-slate-500 mt-6 text-center italic border-t border-slate-800 pt-3";
+                            pData.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> Última atualização na nuvem: ${item.dataAtualizacao}`;
+                            contentBox.appendChild(pData);
+                        }
+
+                        if(item.pdfData) {
+                            const pdfBox = document.getElementById('box-btn-pdf');
+                            pdfBox.classList.remove('hidden');
+                            document.getElementById('view-pdf-nome').textContent = item.pdfNome || "Documento.pdf";
+                            
+                            const btnView = document.getElementById('btn-view-pdf');
+                            const btnDown = document.getElementById('btn-download-pdf');
+                            
+                            btnView.onclick = () => {
+                                document.getElementById('modal-pdf-title').textContent = item.pdfNome || "Documento.pdf";
+                                document.getElementById('pdf-modal-iframe').src = item.pdfData;
+                                
+                                const modal = document.getElementById('modal-pdf-viewer');
+                                modal.classList.remove('hidden');
+                                modal.classList.add('flex');
+                                
+                                document.getElementById('btn-modal-pdf-download').onclick = () => triggerDownload(item.pdfData, item.pdfNome);
+                            };
+                            
+                            btnDown.onclick = () => triggerDownload(item.pdfData, item.pdfNome);
+                        }
+                    } else {
+                        document.getElementById('tab-visualizacao').innerHTML = `
+                            <div class="max-w-md mx-auto bg-slate-800 border border-red-500/50 rounded-3xl p-8 text-center shadow-xl mt-12">
+                                <div class="bg-red-500/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30">
+                                    <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400"></i>
+                                </div>
+                                <h2 class="text-xl font-bold text-white mb-2">Registro Não Encontrado</h2>
+                                <p class="text-slate-400 text-sm mb-6">Este material pode ter sido excluído da nuvem ou o link está incorreto.</p>
+                                <button onclick="window.limparEVoltar()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition shadow-lg w-full">
+                                    Acessar Sistema
+                                </button>
+                            </div>
+                        `;
+                    }
+                } catch(e) {
+                    document.getElementById('view-loading').innerHTML = `
+                        <div class="text-red-400 mb-2"><i class="fa-solid fa-wifi text-3xl"></i></div>
+                        <p class="text-slate-300">Falha ao comunicar com a nuvem.</p>
+                        <button onclick="location.reload()" class="mt-4 bg-slate-700 px-4 py-2 rounded-lg text-sm text-white">Tentar Novamente</button>
+                    `;
+                }
+            } else {
+                window.switchTab('cadastro');
+            }
+        }
+        
+        function triggerDownload(dataUrl, fileName) {
+            try {
+                const arr = dataUrl.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while(n--){
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], {type:mime});
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName || "certificado.pdf";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            } catch(e) {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = fileName || "certificado.pdf";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        window.fecharModalPdf = function() {
+            const modal = document.getElementById('modal-pdf-viewer');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('pdf-modal-iframe').src = "about:blank";
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.fecharModalPdf();
+                window.fecharModalConfirm();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
