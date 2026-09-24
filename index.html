@@ -1,454 +1,1368 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaterialQR - Gestão Industrial Supabase</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <title>MaterialQR - Gestão Industrial</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QRCode.js CDN -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Supabase JS Client CDN -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        
-        @media print {
-            body * { visibility: hidden; }
-            #area-impressao, #area-impressao * { visibility: visible; }
-            #area-impressao {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: flex;
-                justify-content: center;
-            }
-            .no-print { display: none !important; }
+        body {
+            background: #111827;
         }
 
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.1);
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            border-left-color: #6366f1;
-            animation: spin 0.8s linear infinite;
+        .glass {
+            background: rgba(31, 41, 55, 0.85);
+            backdrop-filter: blur(10px);
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #qrcode img {
+            margin: auto;
+        }
     </style>
 </head>
-<body class="h-full bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative">
 
-    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-50 no-print" id="main-header">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.limparEVoltar()">
-                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-industry text-xl"></i>
+<body class="text-white min-h-screen">
+
+    <!-- =====================================================
+         CABEÇALHO
+    ====================================================== -->
+
+    <header class="bg-gray-900 border-b border-gray-700">
+        <div class="max-w-6xl mx-auto px-6 py-5">
+
+            <div class="flex items-center gap-3">
+
+                <div class="bg-blue-600 w-11 h-11 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-qrcode text-xl"></i>
                 </div>
+
                 <div>
-                    <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent block">MaterialQR</span>
-                    <span class="text-[10px] text-emerald-400 font-mono block -mt-1"><i class="fa-solid fa-database text-[9px] mr-1"></i>Supabase Cloud Ativo</span>
+                    <h1 class="text-2xl font-bold">
+                        MaterialQR
+                    </h1>
+
+                    <p class="text-gray-400 text-sm">
+                        Gestão Industrial
+                    </p>
                 </div>
+
             </div>
-            <nav class="flex space-x-2">
-                <button onclick="window.switchTab('cadastro')" id="btn-tab-cadastro" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/20 flex items-center">
-                    <i class="fa-solid fa-plus-circle mr-1.5"></i> Cadastrar
-                </button>
-            </nav>
+
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 relative">
-        
-        <div id="mensagem-sistema" class="hidden max-w-3xl mx-auto mb-4 p-4 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg relative no-print">
-            <div class="flex items-center">
-                <i id="msg-icon" class="mr-3 text-lg"></i>
-                <span id="msg-texto"></span>
-            </div>
-            <button onclick="window.fecharMensagem()" class="absolute top-4 right-4 text-white opacity-70 hover:opacity-100"><i class="fa-solid fa-times"></i></button>
-        </div>
 
-        <div id="tab-cadastro" class="space-y-6">
-            <div class="max-w-3xl mx-auto bg-slate-800/50 backdrop-blur border border-slate-700/60 rounded-3xl p-6 sm:p-8 shadow-xl">
-                
-                <div class="mb-6 pb-4 border-b border-slate-700/60 flex justify-between items-center">
-                    <div>
-                        <h2 id="form-titulo" class="text-xl font-bold text-white flex items-center">
-                            <i class="fa-solid fa-box-open text-indigo-400 mr-3"></i> Registrar Material & Anexar PDF
-                        </h2>
-                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Armazenamento em nuvem profissional de alta velocidade.</p>
-                    </div>
-                </div>
+    <!-- =====================================================
+         CONTEÚDO PRINCIPAL
+    ====================================================== -->
 
-                <form id="form-material" onsubmit="event.preventDefault(); window.processarFormulario();" class="space-y-5">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Material / Nome *</label>
-                            <input type="text" id="mat-nome" required placeholder="Ex: Chapa de Aço Inox 304" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
+    <main class="max-w-6xl mx-auto px-6 py-8">
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Dimensões *</label>
-                            <input type="text" id="mat-dimensoes" required placeholder="Ex: 2000x1000x3mm" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
+        <!-- =================================================
+             TELA DE CADASTRO
+        ================================================== -->
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">O.S (Ordem de Serviço) *</label>
-                            <input type="text" id="mat-os" required placeholder="Ex: OS-2026-1042" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition">
-                        </div>
+        <section id="tela-cadastro">
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nº do Laudo / Certificado</label>
-                            <input type="text" id="mat-certificado" placeholder="Ex: CQA-9988 (Opcional)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-cyan-500 transition">
-                        </div>
+            <div class="mb-8">
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Anexo do Certificado (PDF)</label>
-                            <div class="relative">
-                                <input type="file" id="mat-pdf-file" accept="application/pdf" class="hidden" onchange="window.lidarUploadPdf(event)">
-                                <label for="mat-pdf-file" class="w-full bg-slate-900 border border-dashed border-slate-600 hover:border-indigo-500 rounded-xl px-4 py-2.5 text-slate-300 flex items-center justify-center cursor-pointer transition text-sm">
-                                    <i class="fa-solid fa-file-pdf text-red-400 mr-2 text-base"></i>
-                                    <span id="label-pdf-nome">Carregar PDF (Opcional)</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Aplicação / Destino *</label>
-                            <textarea id="mat-aplicacao" required rows="2" placeholder="Ex: Montagem da estrutura principal do equipamento." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-none"></textarea>
-                        </div>
-                    </div>
+                <h2 class="text-3xl font-bold">
+                    Cadastro de Material
+                </h2>
 
-                    <div class="flex justify-end pt-4 border-t border-slate-700/50 mt-4">
-                        <button type="submit" id="btn-submit" class="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition transform active:scale-95 flex items-center">
-                            <span id="submit-spinner" class="spinner mr-2 hidden"></span>
-                            <i id="submit-icon" class="fa-solid fa-qrcode mr-2"></i> Salvar no Supabase & Gerar QR Code
-                        </button>
-                    </div>
-                </form>
+                <p class="text-gray-400 mt-2">
+                    Cadastre o material e gere automaticamente seu QR Code.
+                </p>
+
             </div>
 
-            <div id="card-qr-gerado" class="hidden max-w-sm mx-auto bg-slate-800/50 backdrop-blur border border-slate-700/60 rounded-3xl p-6 shadow-xl text-center">
-                <div class="flex items-center justify-between mb-4 no-print border-b border-slate-700 pb-2">
-                    <span class="uppercase tracking-widest text-xs font-bold text-indigo-400">Etiqueta QR Code</span>
-                    <button class="hover:text-white flex items-center px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-sm rounded-lg transition" onclick="window.print()" title="Imprimir Etiqueta">
-                        <i class="fa-solid fa-print mr-2"></i> Imprimir
+
+            <div class="grid lg:grid-cols-2 gap-8">
+
+                <!-- =========================================
+                     FORMULÁRIO
+                ========================================== -->
+
+                <div class="glass rounded-2xl p-6 border border-gray-700">
+
+                    <h3 class="text-xl font-semibold mb-6">
+                        <i class="fa-solid fa-box mr-2 text-blue-400"></i>
+                        Informações do material
+                    </h3>
+
+
+                    <!-- NOME -->
+
+                    <div class="mb-5">
+
+                        <label class="block text-sm font-medium mb-2">
+                            Nome do material *
+                        </label>
+
+                        <input
+                            id="mat-nome"
+                            type="text"
+                            placeholder="Ex.: Haste móvel de aperto"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        >
+
+                    </div>
+
+
+                    <!-- DIMENSÕES -->
+
+                    <div class="mb-5">
+
+                        <label class="block text-sm font-medium mb-2">
+                            Dimensões *
+                        </label>
+
+                        <input
+                            id="mat-dimensoes"
+                            type="text"
+                            placeholder="Ex.: Ø50 x 300 mm"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        >
+
+                    </div>
+
+
+                    <!-- OS -->
+
+                    <div class="mb-5">
+
+                        <label class="block text-sm font-medium mb-2">
+                            OS *
+                        </label>
+
+                        <input
+                            id="mat-os"
+                            type="text"
+                            placeholder="Ex.: PM03"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        >
+
+                    </div>
+
+
+                    <!-- CERTIFICADO -->
+
+                    <div class="mb-5">
+
+                        <label class="block text-sm font-medium mb-2">
+                            Certificado
+                        </label>
+
+                        <input
+                            id="mat-certificado"
+                            type="text"
+                            placeholder="Ex.: Certificado de matéria-prima"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        >
+
+                    </div>
+
+
+                    <!-- PDF -->
+
+                    <div class="mb-5">
+
+                        <label class="block text-sm font-medium mb-2">
+                            Arquivo PDF
+                        </label>
+
+                        <input
+                            id="mat-pdf-file"
+                            type="file"
+                            accept="application/pdf"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3"
+                        >
+
+                        <p class="text-xs text-gray-500 mt-2">
+                            PDF de até 5 MB.
+                        </p>
+
+                        <p id="pdf-status" class="text-sm mt-2"></p>
+
+                    </div>
+
+
+                    <!-- APLICAÇÃO -->
+
+                    <div class="mb-6">
+
+                        <label class="block text-sm font-medium mb-2">
+                            Aplicação *
+                        </label>
+
+                        <textarea
+                            id="mat-aplicacao"
+                            rows="4"
+                            placeholder="Descreva onde o material é utilizado..."
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- BOTÃO -->
+
+                    <button
+                        id="btn-salvar"
+                        onclick="salvarMaterial()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 transition rounded-lg px-5 py-3 font-semibold"
+                    >
+
+                        <i class="fa-solid fa-floppy-disk mr-2"></i>
+
+                        Salvar Material e Gerar QR Code
+
                     </button>
+
+
+                    <!-- MENSAGEM -->
+
+                    <div
+                        id="mensagem"
+                        class="hidden mt-4 rounded-lg p-4 text-sm"
+                    ></div>
+
                 </div>
-                
-                <div id="area-impressao" class="flex justify-center items-center py-2">
-                    <div class="bg-white text-slate-900 p-4 rounded-xl shadow-md border-2 border-slate-300 flex flex-col items-center w-64">
-                        <span class="font-mono text-base font-extrabold tracking-tight text-slate-900 block break-words w-full text-center mb-2 pb-1 border-b-2 border-slate-200" id="etq-os-preview">OS-000</span>
-                        <div id="qrcode-container" class="inline-block bg-white p-1"></div>
+
+
+                <!-- =========================================
+                     QR CODE
+                ========================================== -->
+
+                <div class="glass rounded-2xl p-6 border border-gray-700">
+
+                    <h3 class="text-xl font-semibold mb-6">
+                        <i class="fa-solid fa-qrcode mr-2 text-green-400"></i>
+                        QR Code
+                    </h3>
+
+
+                    <div
+                        id="qr-area"
+                        class="hidden"
+                    >
+
+                        <div
+                            class="bg-white rounded-xl p-6 flex justify-center"
+                        >
+
+                            <div id="qrcode"></div>
+
+                        </div>
+
+
+                        <div class="mt-6">
+
+                            <p class="text-sm text-gray-400">
+                                Material
+                            </p>
+
+                            <p
+                                id="qr-material"
+                                class="font-semibold text-lg"
+                            ></p>
+
+                        </div>
+
+
+                        <div class="flex gap-3 mt-5">
+
+                            <button
+                                onclick="imprimirQR()"
+                                class="flex-1 bg-gray-700 hover:bg-gray-600 rounded-lg px-4 py-3"
+                            >
+
+                                <i class="fa-solid fa-print mr-2"></i>
+
+                                Imprimir
+
+                            </button>
+
+
+                            <button
+                                onclick="abrirMaterial()"
+                                class="flex-1 bg-green-600 hover:bg-green-700 rounded-lg px-4 py-3"
+                            >
+
+                                <i class="fa-solid fa-eye mr-2"></i>
+
+                                Visualizar
+
+                            </button>
+
+                        </div>
+
                     </div>
+
+
+                    <div
+                        id="qr-vazio"
+                        class="text-center py-20 text-gray-500"
+                    >
+
+                        <i class="fa-solid fa-qrcode text-6xl mb-5"></i>
+
+                        <p>
+                            O QR Code aparecerá aqui após o cadastro.
+                        </p>
+
+                    </div>
+
                 </div>
-                
-                <p class="text-[11px] text-slate-400 mt-4 no-print"><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Sincronizado na Nuvem! Qualquer celular conseguirá visualizar as informações e abrir o PDF.</p>
+
             </div>
-        </div>
 
-        <div id="tab-visualizacao" class="hidden space-y-6">
-            <div class="max-w-2xl mx-auto">
-                <div id="view-loading" class="text-center py-12">
-                    <div class="spinner mx-auto mb-3" style="width: 40px; height: 40px;"></div>
-                    <p class="text-slate-400 text-sm">Buscando dados no Supabase...</p>
-                </div>
+        </section>
 
-                <div id="view-content" class="hidden bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-                    
-                    <div class="flex items-start justify-between border-b border-slate-700/60 pb-5">
-                        <div class="pr-4 w-full">
-                            <span id="view-os" class="inline-block bg-indigo-500/10 text-indigo-400 text-sm font-semibold px-3 py-1 rounded-lg mb-2 font-mono border border-indigo-500/20">OS: ---</span>
-                            <h2 id="view-nome" class="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words leading-tight">Carregando...</h2>
-                        </div>
-                    </div>
 
-                    <div class="space-y-4 mt-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/40">
-                                <div class="flex items-center text-slate-300 mb-1">
-                                    <i class="fa-solid fa-ruler-combined text-indigo-400 mr-2 text-sm w-4"></i>
-                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Dimensões</span>
-                                </div>
-                                <p id="view-dimensoes" class="text-base font-medium text-white pl-6">---</p>
-                            </div>
+        <!-- =================================================
+             TELA DE VISUALIZAÇÃO
+        ================================================== -->
 
-                            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/40">
-                                <div class="flex items-center text-slate-300 mb-1">
-                                    <i class="fa-solid fa-certificate text-yellow-400 mr-2 text-sm w-4"></i>
-                                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Certificado / Laudo</span>
-                                </div>
-                                <p id="view-certificado" class="text-base font-medium text-white pl-6">---</p>
-                            </div>
-                        </div>
+        <section
+            id="tela-material"
+            class="hidden"
+        >
 
-                        <div id="box-btn-pdf" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-red-500/40 space-y-3">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-red-500/20 p-2.5 rounded-xl text-red-400 shrink-0">
-                                    <i class="fa-solid fa-file-pdf text-2xl"></i>
-                                </div>
-                                <div class="flex-grow min-w-0">
-                                    <h4 class="text-sm font-bold text-white truncate" id="view-pdf-nome">Certificado.pdf</h4>
-                                    <p class="text-xs text-slate-400">Documento PDF Armazenado no Supabase</p>
-                                </div>
-                            </div>
-                            <div class="pt-1">
-                                <a id="btn-open-pdf" href="#" target="_blank" class="w-full bg-red-600 hover:bg-red-500 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-lg shadow-red-600/30">
-                                    <i class="fa-solid fa-file-pdf mr-2 text-sm"></i> Visualizar / Baixar PDF
-                                </a>
-                            </div>
-                        </div>
+            <div class="mb-8">
 
-                        <div class="bg-slate-900/50 p-5 rounded-2xl border border-slate-700/40">
-                            <div class="flex items-center text-slate-300 mb-2">
-                                <i class="fa-solid fa-bullseye text-cyan-400 mr-2 text-sm w-4"></i>
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Aplicação / Destino</span>
-                            </div>
-                            <p id="view-aplicacao" class="text-base text-slate-200 pl-6 leading-relaxed">---</p>
-                        </div>
-                    </div>
+                <button
+                    onclick="voltarCadastro()"
+                    class="text-blue-400 hover:text-blue-300 mb-5"
+                >
 
-                    <div class="pt-6 mt-6 flex justify-center border-t border-slate-700/60 no-print">
-                        <button onclick="window.limparEVoltar()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition text-xs flex items-center justify-center">
-                            <i class="fa-solid fa-plus-circle mr-2"></i> Cadastrar Novo Material
-                        </button>
-                    </div>
-                </div>
+                    <i class="fa-solid fa-arrow-left mr-2"></i>
+
+                    Voltar
+
+                </button>
+
+
+                <h2
+                    id="view-nome"
+                    class="text-3xl font-bold"
+                ></h2>
+
+                <p class="text-gray-400 mt-2">
+                    Informações do material
+                </p>
+
             </div>
-        </div>
+
+
+            <div class="grid md:grid-cols-2 gap-6">
+
+                <!-- DADOS -->
+
+                <div class="glass rounded-2xl p-6 border border-gray-700">
+
+                    <h3 class="text-xl font-semibold mb-6">
+                        Informações
+                    </h3>
+
+
+                    <div class="space-y-5">
+
+                        <div>
+
+                            <p class="text-gray-500 text-sm">
+                                Nome
+                            </p>
+
+                            <p
+                                id="view-nome-2"
+                                class="font-medium"
+                            ></p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-gray-500 text-sm">
+                                Dimensões
+                            </p>
+
+                            <p
+                                id="view-dimensoes"
+                                class="font-medium"
+                            ></p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-gray-500 text-sm">
+                                OS
+                            </p>
+
+                            <p
+                                id="view-os"
+                                class="font-medium"
+                            ></p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-gray-500 text-sm">
+                                Certificado
+                            </p>
+
+                            <p
+                                id="view-certificado"
+                                class="font-medium"
+                            ></p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-gray-500 text-sm">
+                                Aplicação
+                            </p>
+
+                            <p
+                                id="view-aplicacao"
+                                class="font-medium whitespace-pre-line"
+                            ></p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PDF -->
+
+                <div class="glass rounded-2xl p-6 border border-gray-700">
+
+                    <h3 class="text-xl font-semibold mb-6">
+
+                        <i class="fa-solid fa-file-pdf mr-2 text-red-400"></i>
+
+                        Certificado
+
+                    </h3>
+
+
+                    <div
+                        id="pdf-disponivel"
+                        class="hidden"
+                    >
+
+                        <div class="bg-gray-800 rounded-xl p-5">
+
+                            <i class="fa-solid fa-file-pdf text-4xl text-red-400 mb-4"></i>
+
+                            <p
+                                id="view-pdf-nome"
+                                class="font-medium break-all"
+                            ></p>
+
+                        </div>
+
+
+                        <a
+                            id="btn-open-pdf"
+                            href="#"
+                            target="_blank"
+                            class="block text-center bg-red-600 hover:bg-red-700 rounded-lg px-5 py-3 mt-5 font-semibold"
+                        >
+
+                            <i class="fa-solid fa-file-pdf mr-2"></i>
+
+                            Abrir certificado
+
+                        </a>
+
+                    </div>
+
+
+                    <div
+                        id="pdf-indisponivel"
+                        class="text-center py-10 text-gray-500"
+                    >
+
+                        <i class="fa-solid fa-file-circle-xmark text-5xl mb-4"></i>
+
+                        <p>
+                            Nenhum certificado cadastrado.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
 
     </main>
 
-    <script>
-        // CONFIGURAÇÕES DO SEU PROJETO SUPABASE (COLE SUAS CHAVES AQUI)
-        const SUPABASE_URL = "https://SUA_URL_AQUI.supabase.co";
-        const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLIC_AQUI";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+        // =====================================================
+        // CONFIGURAÇÃO DO SUPABASE
+        // =====================================================
+
+        const SUPABASE_URL = "COLE_AQUI_SUA_PROJECT_URL";
+
+        const SUPABASE_KEY = "COLE_AQUI_SUA_CHAVE_PUBLICA";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        // =====================================================
+        // VARIÁVEIS
+        // =====================================================
 
         let pdfFileSelecionado = null;
 
-        window.lidarUploadPdf = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        let materialAtual = null;
 
-            if (file.type !== "application/pdf") {
-                window.mostrarMensagem("Selecione um arquivo no formato PDF.", "erro");
-                e.target.value = "";
-                return;
-            }
 
-            pdfFileSelecionado = file;
-            document.getElementById('label-pdf-nome').innerText = file.name;
-        };
+        // =====================================================
+        // SELEÇÃO DO PDF
+        // =====================================================
 
-        window.processarFormulario = async function() {
-            const nome = document.getElementById('mat-nome').value.trim();
-            const dimensoes = document.getElementById('mat-dimensoes').value.trim();
-            const os = document.getElementById('mat-os').value.trim();
-            const certificado = document.getElementById('mat-certificado').value.trim() || 'N/A';
-            const aplicacao = document.getElementById('mat-aplicacao').value.trim();
+        document
+            .getElementById("mat-pdf-file")
+            .addEventListener("change", function(event) {
 
-            if (!nome || !dimensoes || !os || !aplicacao) {
-                window.mostrarMensagem("Preencha todos os campos obrigatórios (*).", "aviso");
-                return;
-            }
+                const file = event.target.files[0];
 
-            window.setLoadingState(true);
+                const status =
+                    document.getElementById("pdf-status");
 
-            try {
-                let pdfUrl = null;
-                let pdfNome = null;
 
-                // 1. Upload do PDF para o Supabase Storage
-                if (pdfFileSelecionado) {
-                    pdfNome = pdfFileSelecionado.name;
-                    const fileName = `${Date.now()}_${pdfNome.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                if (!file) {
 
-                    const { data: uploadData, error: uploadError } = await supabase
-                        .storage
-                        .from('certificados')
-                        .upload(fileName, pdfFileSelecionado, { contentType: 'application/pdf' });
+                    pdfFileSelecionado = null;
 
-                    if (uploadError) throw uploadError;
+                    status.textContent = "";
 
-                    // Obtém a URL pública do PDF
-                    const { data: publicUrlData } = supabase
-                        .storage
-                        .from('certificados')
-                        .getPublicUrl(fileName);
-
-                    pdfUrl = publicUrlData.publicUrl;
+                    return;
                 }
 
-                // 2. Gravação dos dados na Tabela
-                const { data, error } = await supabase
-                    .from('materiais')
-                    .insert([
-                        { 
-                            nome, 
-                            dimensoes, 
-                            os, 
-                            certificado, 
-                            aplicacao, 
-                            pdf_url: pdfUrl, 
-                            pdf_nome: pdfNome 
-                        }
-                    ])
-                    .select();
 
-                if (error) throw error;
+                // Verifica se é PDF
 
-                const idGerado = data[0].id;
+                if (file.type !== "application/pdf") {
 
-                window.setLoadingState(false);
-                window.mostrarMensagem("Material e PDF salvos no Supabase com sucesso!", "sucesso");
+                    alert("Selecione apenas arquivos PDF.");
 
-                // 3. Gerar QR Code apontando para o ID no Supabase
-                window.gerarVisualizacaoQR(idGerado, os);
+                    event.target.value = "";
 
-                document.getElementById('form-material').reset();
-                pdfFileSelecionado = null;
-                document.getElementById('label-pdf-nome').innerText = "Carregar PDF (Opcional)";
+                    pdfFileSelecionado = null;
 
-            } catch(e) {
-                window.setLoadingState(false);
-                console.error(e);
-                window.mostrarMensagem("Erro ao salvar no Supabase: " + (e.message || "Erro desconhecido"), "erro");
-            }
-        };
+                    status.textContent = "";
 
-        window.gerarVisualizacaoQR = function(id, os) {
-            document.getElementById('etq-os-preview').textContent = os;
-            document.getElementById('qrcode-container').innerHTML = "";
-            document.getElementById('card-qr-gerado').classList.remove('hidden');
+                    return;
+                }
 
-            const baseUrl = window.location.href.split('?')[0];
-            const viewUrl = `${baseUrl}?id=${id}`;
 
-            new QRCode(document.getElementById("qrcode-container"), {
-                text: viewUrl,
-                width: 180,
-                height: 180,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
+                // Limite de 5 MB
+
+                if (file.size > 5 * 1024 * 1024) {
+
+                    alert("O PDF deve ter no máximo 5 MB.");
+
+                    event.target.value = "";
+
+                    pdfFileSelecionado = null;
+
+                    status.textContent = "";
+
+                    return;
+                }
+
+
+                pdfFileSelecionado = file;
+
+
+                status.innerHTML =
+                    `<span class="text-green-400">
+                        <i class="fa-solid fa-check mr-1"></i>
+                        ${file.name}
+                    </span>`;
+
             });
-        };
 
-        window.setLoadingState = function(isLoading) {
-            const btn = document.getElementById('btn-submit');
-            const spinner = document.getElementById('submit-spinner');
-            const icon = document.getElementById('submit-icon');
-            
-            if(isLoading) {
-                btn.disabled = true;
-                btn.classList.add('opacity-75', 'cursor-not-allowed');
-                spinner.classList.remove('hidden');
-                icon.classList.add('hidden');
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                spinner.classList.add('hidden');
-                icon.classList.remove('hidden');
+
+        // =====================================================
+        // GERAR NOME SEGURO PARA O PDF
+        // =====================================================
+
+        function gerarNomeSeguro(nomeOriginal) {
+
+            const extensao = ".pdf";
+
+
+            let nome = nomeOriginal
+
+                // Remove extensão original
+                .replace(/\.[^/.]+$/, "")
+
+                // Remove acentos
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+
+                // Troca caracteres especiais
+                .replace(/[^a-zA-Z0-9_-]/g, "_")
+
+                // Evita vários _
+                .replace(/_+/g, "_")
+
+                // Remove _ das pontas
+                .replace(/^_+|_+$/g, "");
+
+
+            if (!nome) {
+
+                nome = "certificado";
+
             }
-        };
 
-        window.mostrarMensagem = function(texto, tipo = "info") {
-            const msgBox = document.getElementById('mensagem-sistema');
-            const msgTexto = document.getElementById('msg-texto');
-            const msgIcon = document.getElementById('msg-icon');
-            
-            msgBox.classList.remove('hidden', 'bg-red-500/90', 'bg-emerald-500/90', 'bg-amber-500/90');
-            msgTexto.textContent = texto;
-            
-            if(tipo === "sucesso") {
-                msgBox.classList.add('bg-emerald-500/90', 'text-white');
-                msgIcon.className = "fa-solid fa-circle-check mr-3 text-lg";
-            } else if (tipo === "erro") {
-                msgBox.classList.add('bg-red-500/90', 'text-white');
-                msgIcon.className = "fa-solid fa-circle-exclamation mr-3 text-lg";
-            } else {
-                msgBox.classList.add('bg-amber-500/90', 'text-white');
-                msgIcon.className = "fa-solid fa-triangle-exclamation mr-3 text-lg";
-            }
-            
-            setTimeout(() => { window.fecharMensagem(); }, 4000);
-        };
 
-        window.fecharMensagem = function() {
-            document.getElementById('mensagem-sistema').classList.add('hidden');
-        };
+            return `${Date.now()}_${nome}${extensao}`;
 
-        window.limparEVoltar = function() {
-            window.location.href = window.location.href.split('?')[0];
-        };
-
-        window.switchTab = function(tabId) {
-            if(tabId === 'cadastro') {
-                document.getElementById('tab-cadastro').classList.remove('hidden');
-                document.getElementById('tab-visualizacao').classList.add('hidden');
-            } else if(tabId === 'visualizacao') {
-                document.getElementById('tab-cadastro').classList.add('hidden');
-                document.getElementById('tab-visualizacao').classList.remove('hidden');
-            }
-        };
-
-        async function initApp() {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-
-            if (id) {
-                document.getElementById('main-header').classList.add('hidden');
-                window.switchTab('visualizacao');
-
-                try {
-                    const { data, error } = await supabase
-                        .from('materiais')
-                        .select('*')
-                        .eq('id', id)
-                        .single();
-
-                    if (error || !data) throw error;
-
-                    document.getElementById('view-loading').classList.add('hidden');
-                    document.getElementById('view-content').classList.remove('hidden');
-
-                    document.getElementById('view-os').textContent = `OS: ${data.os || 'N/A'}`;
-                    document.getElementById('view-nome').textContent = data.nome || 'Material';
-                    document.getElementById('view-dimensoes').textContent = data.dimensoes || 'N/A';
-                    document.getElementById('view-certificado').textContent = data.certificado || 'N/A';
-                    document.getElementById('view-aplicacao').textContent = data.aplicacao || 'N/A';
-
-                    if (data.pdf_url) {
-                        document.getElementById('box-btn-pdf').classList.remove('hidden');
-                        document.getElementById('view-pdf-nome').textContent = data.pdf_nome || 'Certificado.pdf';
-                        document.getElementById('btn-open-pdf').href = data.pdf_url;
-                    }
-
-                } catch(e) {
-                    document.getElementById('view-loading').classList.add('hidden');
-                    document.getElementById('view-content').innerHTML = `
-                        <div class="text-center py-8">
-                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-4xl mb-3"></i>
-                            <h3 class="text-lg font-bold text-white mb-2">Registro Não Encontrado</h3>
-                            <p class="text-slate-400 text-sm mb-4">Este material não consta no Supabase ou foi removido.</p>
-                            <button onclick="window.limparEVoltar()" class="bg-indigo-600 px-4 py-2 rounded-xl text-xs font-semibold text-white">Acessar Sistema</button>
-                        </div>
-                    `;
-                }
-            } else {
-                window.switchTab('cadastro');
-            }
         }
 
-        window.addEventListener('DOMContentLoaded', initApp);
+
+        // =====================================================
+        // MOSTRAR MENSAGEM
+        // =====================================================
+
+        function mostrarMensagem(texto, tipo = "erro") {
+
+            const elemento =
+                document.getElementById("mensagem");
+
+
+            elemento.classList.remove(
+                "hidden",
+                "bg-red-900",
+                "bg-green-900",
+                "bg-yellow-900"
+            );
+
+
+            if (tipo === "sucesso") {
+
+                elemento.classList.add("bg-green-900");
+
+            }
+
+            else if (tipo === "aviso") {
+
+                elemento.classList.add("bg-yellow-900");
+
+            }
+
+            else {
+
+                elemento.classList.add("bg-red-900");
+
+            }
+
+
+            elemento.innerHTML = texto;
+
+        }
+
+
+        // =====================================================
+        // SALVAR MATERIAL
+        // =====================================================
+
+        async function salvarMaterial() {
+
+            const botao =
+                document.getElementById("btn-salvar");
+
+
+            const nome =
+                document.getElementById("mat-nome")
+                .value
+                .trim();
+
+
+            const dimensoes =
+                document.getElementById("mat-dimensoes")
+                .value
+                .trim();
+
+
+            const os =
+                document.getElementById("mat-os")
+                .value
+                .trim();
+
+
+            const certificado =
+                document.getElementById("mat-certificado")
+                .value
+                .trim();
+
+
+            const aplicacao =
+                document.getElementById("mat-aplicacao")
+                .value
+                .trim();
+
+
+            // =================================================
+            // VALIDAÇÃO
+            // =================================================
+
+            if (!nome ||
+                !dimensoes ||
+                !os ||
+                !aplicacao) {
+
+                mostrarMensagem(
+                    "Preencha todos os campos obrigatórios (*).",
+                    "erro"
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                botao.disabled = true;
+
+                botao.innerHTML =
+                    `<i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                     Salvando...`;
+
+
+                mostrarMensagem(
+                    "Salvando material...",
+                    "aviso"
+                );
+
+
+                // =================================================
+                // UPLOAD DO PDF
+                // =================================================
+
+                let pdfUrl = null;
+
+                let pdfNome = null;
+
+                let nomeSeguro = null;
+
+
+                if (pdfFileSelecionado) {
+
+                    nomeSeguro =
+                        gerarNomeSeguro(
+                            pdfFileSelecionado.name
+                        );
+
+
+                    const {
+                        data: uploadData,
+                        error: uploadError
+                    } =
+                        await supabaseClient
+                            .storage
+                            .from("certificados")
+                            .upload(
+                                nomeSeguro,
+                                pdfFileSelecionado,
+                                {
+                                    contentType: "application/pdf",
+                                    cacheControl: "3600",
+                                    upsert: false
+                                }
+                            );
+
+
+                    if (uploadError) {
+
+                        console.error(
+                            "Erro no upload:",
+                            uploadError
+                        );
+
+                        throw new Error(
+                            "Erro ao enviar o PDF: " +
+                            uploadError.message
+                        );
+
+                    }
+
+
+                    // =================================================
+                    // GERAR URL PÚBLICA
+                    // =================================================
+
+                    const {
+                        data: publicUrlData
+                    } =
+                        supabaseClient
+                            .storage
+                            .from("certificados")
+                            .getPublicUrl(
+                                nomeSeguro
+                            );
+
+
+                    pdfUrl =
+                        publicUrlData.publicUrl;
+
+
+                    pdfNome =
+                        pdfFileSelecionado.name;
+
+                }
+
+
+                // =================================================
+                // SALVAR DADOS NA TABELA
+                // =================================================
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient
+                        .from("materiais")
+                        .insert([
+                            {
+                                nome: nome,
+                                dimensoes: dimensoes,
+                                os: os,
+                                certificado: certificado || null,
+                                aplicacao: aplicacao,
+                                pdf_url: pdfUrl,
+                                pdf_nome: pdfNome
+                            }
+                        ])
+                        .select();
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no banco:",
+                        error
+                    );
+
+
+                    // Tenta apagar PDF caso tenha
+                    // sido enviado mas o banco falhou
+
+                    if (nomeSeguro) {
+
+                        try {
+
+                            await supabaseClient
+                                .storage
+                                .from("certificados")
+                                .remove([
+                                    nomeSeguro
+                                ]);
+
+                        } catch (e) {
+
+                            console.log(
+                                "Não foi possível limpar o PDF:",
+                                e
+                            );
+
+                        }
+
+                    }
+
+
+                    throw new Error(
+                        "Erro ao salvar no banco: " +
+                        error.message
+                    );
+
+                }
+
+
+                // =================================================
+                // MATERIAL CRIADO
+                // =================================================
+
+                const material =
+                    data[0];
+
+
+                materialAtual =
+                    material;
+
+
+                // =================================================
+                // GERAR QR CODE
+                // =================================================
+
+                gerarQRCode(material.id);
+
+
+                document
+                    .getElementById("qr-material")
+                    .textContent =
+                    material.nome;
+
+
+                document
+                    .getElementById("qr-area")
+                    .classList.remove("hidden");
+
+
+                document
+                    .getElementById("qr-vazio")
+                    .classList.add("hidden");
+
+
+                mostrarMensagem(
+                    "Material cadastrado com sucesso!",
+                    "sucesso"
+                );
+
+
+                // Limpa formulário
+
+                document
+                    .getElementById("mat-nome")
+                    .value = "";
+
+
+                document
+                    .getElementById("mat-dimensoes")
+                    .value = "";
+
+
+                document
+                    .getElementById("mat-os")
+                    .value = "";
+
+
+                document
+                    .getElementById("mat-certificado")
+                    .value = "";
+
+
+                document
+                    .getElementById("mat-aplicacao")
+                    .value = "";
+
+
+                document
+                    .getElementById("mat-pdf-file")
+                    .value = "";
+
+
+                document
+                    .getElementById("pdf-status")
+                    .textContent = "";
+
+
+                pdfFileSelecionado = null;
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                mostrarMensagem(
+                    error.message ||
+                    "Ocorreu um erro ao salvar o material.",
+                    "erro"
+                );
+
+            } finally {
+
+                botao.disabled = false;
+
+                botao.innerHTML =
+                    `<i class="fa-solid fa-floppy-disk mr-2"></i>
+                     Salvar Material e Gerar QR Code`;
+
+            }
+
+        }
+
+
+        // =====================================================
+        // GERAR QR CODE
+        // =====================================================
+
+        function gerarQRCode(id) {
+
+            const qr =
+                document.getElementById("qrcode");
+
+
+            qr.innerHTML = "";
+
+
+            const baseUrl =
+                window.location.href
+                    .split("?")[0];
+
+
+            const viewUrl =
+                `${baseUrl}?id=${encodeURIComponent(id)}`;
+
+
+            new QRCode(qr, {
+
+                text: viewUrl,
+
+                width: 220,
+
+                height: 220,
+
+                correctLevel:
+                    QRCode.CorrectLevel.H
+
+            });
+
+        }
+
+
+        // =====================================================
+        // ABRIR MATERIAL
+        // =====================================================
+
+        function abrirMaterial() {
+
+            if (!materialAtual) {
+
+                return;
+
+            }
+
+
+            const baseUrl =
+                window.location.href
+                    .split("?")[0];
+
+
+            const url =
+                `${baseUrl}?id=${encodeURIComponent(materialAtual.id)}`;
+
+
+            window.open(
+                url,
+                "_blank"
+            );
+
+        }
+
+
+        // =====================================================
+        // IMPRIMIR QR
+        // =====================================================
+
+        function imprimirQR() {
+
+            const qr =
+                document.getElementById("qrcode")
+                .innerHTML;
+
+
+            const nome =
+                document.getElementById("qr-material")
+                .textContent;
+
+
+            const janela =
+                window.open(
+                    "",
+                    "_blank",
+                    "width=600,height=700"
+                );
+
+
+            janela.document.write(`
+
+                <!DOCTYPE html>
+
+                <html>
+
+                <head>
+
+                    <title>QR Code - ${nome}</title>
+
+                    <style>
+
+                        body {
+
+                            font-family: Arial;
+
+                            text-align: center;
+
+                            padding-top: 50px;
+
+                        }
+
+                        img {
+
+                            margin: 30px auto;
+
+                        }
+
+                        h1 {
+
+                            font-size: 24px;
+
+                        }
+
+                    </style>
+
+                </head>
+
+                <body>
+
+                    <h1>${nome}</h1>
+
+                    ${qr}
+
+                    <script>
+
+                        window.onload = function() {
+
+                            window.print();
+
+                        };
+
+                    <\/script>
+
+                </body>
+
+                </html>
+
+            `);
+
+
+            janela.document.close();
+
+        }
+
+
+        // =====================================================
+        // CARREGAR MATERIAL PELO ID DO QR CODE
+        // =====================================================
+
+        async function carregarMaterial(id) {
+
+            try {
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient
+                        .from("materiais")
+                        .select("*")
+                        .eq("id", id)
+                        .single();
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                // =============================================
+                // DADOS
+                // =============================================
+
+                document
+                    .getElementById("view-nome")
+                    .textContent =
+                    data.nome;
+
+
+                document
+                    .getElementById("view-nome-2")
+                    .textContent =
+                    data.nome;
+
+
+                document
+                    .getElementById("view-dimensoes")
+                    .textContent =
+                    data.dimensoes;
+
+
+                document
+                    .getElementById("view-os")
+                    .textContent =
+                    data.os;
+
+
+                document
+                    .getElementById("view-certificado")
+                    .textContent =
+                    data.certificado ||
+                    "Não informado";
+
+
+                document
+                    .getElementById("view-aplicacao")
+                    .textContent =
+                    data.aplicacao;
+
+
+                // =============================================
+                // PDF
+                // =============================================
+
+                if (data.pdf_url) {
+
+                    document
+                        .getElementById("pdf-disponivel")
+                        .classList.remove("hidden");
+
+
+                    document
+                        .getElementById("pdf-indisponivel")
+                        .classList.add("hidden");
+
+
+                    document
+                        .getElementById("view-pdf-nome")
+                        .textContent =
+                        data.pdf_nome ||
+                        "Certificado.pdf";
+
+
+                    document
+                        .getElementById("btn-open-pdf")
+                        .href =
+                        data.pdf_url;
+
+                }
+
+                else {
+
+                    document
+                        .getElementById("pdf-disponivel")
+                        .classList.add("hidden");
+
+
+                    document
+                        .getElementById("pdf-indisponivel")
+                        .classList.remove("hidden");
+
+                }
+
+
+                // =============================================
+                // TROCA TELA
+                // =============================================
+
+                document
+                    .getElementById("tela-cadastro")
+                    .classList.add("hidden");
+
+
+                document
+                    .getElementById("tela-material")
+                    .classList.remove("hidden");
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Material não encontrado.\n\n" +
+                    error.message
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // VOLTAR
+        // =====================================================
+
+        function voltarCadastro() {
+
+            window.location.href =
+                window.location.href.split("?")[0];
+
+        }
+
+
+        // =====================================================
+        // VERIFICAR SE É UMA PÁGINA DE MATERIAL
+        // =====================================================
+
+        async function iniciar() {
+
+            const parametros =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+
+            const id =
+                parametros.get("id");
+
+
+            if (id) {
+
+                await carregarMaterial(id);
+
+            }
+
+        }
+
+
+        // =====================================================
+        // INICIAR
+        // =====================================================
+
+        iniciar();
+
     </script>
+
 </body>
 </html>
