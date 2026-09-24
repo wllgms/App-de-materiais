@@ -1,293 +1,580 @@
 ```html
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>MaterialQR - Gestão Industrial</title>
 
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
+    <!-- QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+
+    <!-- Font Awesome -->
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
+
 </head>
 
-<body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- CABEÇALHO -->
-    <header class="bg-gray-800 border-b border-gray-700">
-        <div class="max-w-6xl mx-auto px-6 py-5">
+<body class="bg-gray-950 text-white min-h-screen">
 
-            <div class="flex items-center gap-3">
 
-                <div class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-qrcode text-2xl"></i>
-                </div>
+<!-- =========================================================
+     CABEÇALHO
+========================================================= -->
 
-                <div>
-                    <h1 class="text-2xl font-bold">
-                        MaterialQR
-                    </h1>
+<header class="bg-gray-900 border-b border-gray-800">
 
-                    <p class="text-gray-400 text-sm">
-                        Gestão Industrial
-                    </p>
-                </div>
+    <div class="max-w-7xl mx-auto px-6 py-5">
+
+        <div class="flex items-center gap-3">
+
+            <div
+                class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center"
+            >
+
+                <i class="fa-solid fa-qrcode text-2xl"></i>
 
             </div>
 
-        </div>
-    </header>
 
+            <div>
 
-    <main class="max-w-6xl mx-auto px-6 py-8">
+                <h1 class="text-2xl font-bold">
+                    MaterialQR
+                </h1>
 
-        <!-- CADASTRO -->
-        <section id="cadastro">
-
-            <div class="mb-8">
-
-                <h2 class="text-3xl font-bold mb-2">
-                    Cadastro de Material
-                </h2>
-
-                <p class="text-gray-400">
-                    Cadastre o material e gere automaticamente seu QR Code.
+                <p class="text-gray-400 text-sm">
+                    Gestão Industrial
                 </p>
 
             </div>
 
+        </div>
 
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
-                    <!-- NOME -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">
-                            Nome do material
-                        </label>
-
-                        <input
-                            id="mat-nome"
-                            type="text"
-                            placeholder="Ex.: Haste móvel de aperto"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
-                        >
-                    </div>
+</header>
 
 
-                    <!-- DIMENSÕES -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+
+<!-- =========================================================
+     MENU
+========================================================= -->
+
+<div class="flex flex-wrap gap-3 mb-8">
+
+    <button
+        onclick="mostrarCadastro()"
+        class="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg font-semibold"
+    >
+
+        <i class="fa-solid fa-plus mr-2"></i>
+
+        Novo material
+
+    </button>
+
+
+    <button
+        onclick="mostrarHistorico()"
+        class="bg-gray-800 hover:bg-gray-700 border border-gray-700 px-5 py-3 rounded-lg font-semibold"
+    >
+
+        <i class="fa-solid fa-clock-rotate-left mr-2"></i>
+
+        Histórico
+
+    </button>
+
+</div>
+
+
+
+<!-- =========================================================
+     CADASTRO
+========================================================= -->
+
+<section id="cadastro">
+
+    <div class="mb-8">
+
+        <h2 class="text-3xl font-bold mb-2">
+            Cadastro de Material
+        </h2>
+
+        <p class="text-gray-400">
+            Cadastre o material e gere automaticamente seu QR Code.
+        </p>
+
+    </div>
+
+
+
+    <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+            <!-- Nº OS -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Nº de OS
+                </label>
+
+                <input
+                    id="mat-os"
+                    type="text"
+                    placeholder="Ex.: OS-2026-001"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- MATERIAL -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Material
+                </label>
+
+                <input
+                    id="mat-nome"
+                    type="text"
+                    placeholder="Ex.: Haste móvel de aperto"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- DIMENSÕES -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Dimensões
+                </label>
+
+                <input
+                    id="mat-dimensoes"
+                    type="text"
+                    placeholder="Ex.: 500 x 200 x 100 mm"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- PEDIDO DE COMPRA -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Pedido de Compra
+                </label>
+
+                <input
+                    id="mat-pedido"
+                    type="text"
+                    placeholder="Ex.: PC-2026-015"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- CENTRO DE CUSTO -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Centro de Custo
+                </label>
+
+                <input
+                    id="mat-centro"
+                    type="text"
+                    placeholder="Ex.: CC-1040"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- APLICAÇÃO -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Aplicação
+                </label>
+
+                <input
+                    id="mat-aplicacao"
+                    type="text"
+                    placeholder="Ex.: Manutenção do equipamento PM03"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                >
+
+            </div>
+
+
+
+            <!-- PDF -->
+
+            <div class="md:col-span-2">
+
+                <label class="block text-sm font-medium mb-2">
+
+                    <i class="fa-solid fa-file-pdf mr-1 text-red-400"></i>
+
+                    Documentação (PDF)
+
+                </label>
+
+
+                <input
+                    id="mat-pdf-file"
+                    type="file"
+                    accept="application/pdf"
+                    class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3"
+                >
+
+
+                <p class="text-xs text-gray-500 mt-2">
+
+                    Tamanho máximo: 5 MB.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- BOTÃO -->
+
+        <div class="mt-8">
+
+            <button
+                onclick="salvarMaterial()"
+                id="btn-salvar"
+                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition"
+            >
+
+                <i class="fa-solid fa-floppy-disk mr-2"></i>
+
+                Salvar material
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     HISTÓRICO
+========================================================= -->
+
+<section
+    id="historico"
+    class="hidden"
+>
+
+
+    <div class="mb-8">
+
+        <h2 class="text-3xl font-bold mb-2">
+            Histórico de Materiais
+        </h2>
+
+        <p class="text-gray-400">
+            Consulte todos os materiais cadastrados.
+        </p>
+
+    </div>
+
+
+
+    <!-- PESQUISA -->
+
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
+
+        <div class="relative">
+
+            <i
+                class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+            ></i>
+
+
+            <input
+                id="campo-pesquisa"
+                type="text"
+                placeholder="Pesquisar por OS, material, pedido de compra ou centro de custo..."
+                oninput="filtrarHistorico()"
+                class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-11 pr-4 py-3 focus:outline-none focus:border-blue-500"
+            >
+
+        </div>
+
+    </div>
+
+
+
+    <!-- TABELA -->
+
+    <div
+        class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden"
+    >
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead class="bg-gray-800">
+
+                    <tr>
+
+                        <th class="text-left px-5 py-4 text-sm">
+                            Nº de OS
+                        </th>
+
+                        <th class="text-left px-5 py-4 text-sm">
+                            Material
+                        </th>
+
+                        <th class="text-left px-5 py-4 text-sm">
                             Dimensões
-                        </label>
+                        </th>
 
-                        <input
-                            id="mat-dimensoes"
-                            type="text"
-                            placeholder="Ex.: 500 x 200 x 100 mm"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
-                        >
-                    </div>
-
-
-                    <!-- OS -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">
-                            OS
-                        </label>
-
-                        <input
-                            id="mat-os"
-                            type="text"
-                            placeholder="Ex.: PM03"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
-                        >
-                    </div>
-
-
-                    <!-- CERTIFICADO -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">
-                            Certificado
-                        </label>
-
-                        <input
-                            id="mat-certificado"
-                            type="text"
-                            placeholder="Ex.: Certificado 12345"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
-                        >
-                    </div>
-
-
-                    <!-- APLICAÇÃO -->
-                    <div class="md:col-span-2">
-
-                        <label class="block text-sm font-medium mb-2">
+                        <th class="text-left px-5 py-4 text-sm">
                             Aplicação
-                        </label>
+                        </th>
 
-                        <textarea
-                            id="mat-aplicacao"
-                            rows="3"
-                            placeholder="Descreva onde o material será utilizado..."
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
-                        ></textarea>
+                        <th class="text-left px-5 py-4 text-sm">
+                            Pedido de Compra
+                        </th>
 
-                    </div>
+                        <th class="text-left px-5 py-4 text-sm">
+                            Centro de Custo
+                        </th>
 
+                        <th class="text-center px-5 py-4 text-sm">
+                            Documentação
+                        </th>
 
-                    <!-- PDF -->
-                    <div class="md:col-span-2">
+                        <th class="text-center px-5 py-4 text-sm">
+                            Ações
+                        </th>
 
-                        <label class="block text-sm font-medium mb-2">
-                            Certificado PDF
-                        </label>
+                    </tr>
 
-                        <input
-                            id="mat-pdf-file"
-                            type="file"
-                            accept="application/pdf"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3"
-                        >
-
-                        <p class="text-xs text-gray-500 mt-2">
-                            Tamanho máximo: 5 MB.
-                        </p>
-
-                    </div>
-
-                </div>
+                </thead>
 
 
-                <!-- BOTÃO SALVAR -->
-                <div class="mt-8">
+                <tbody id="tabela-historico">
 
-                    <button
-                        onclick="salvarMaterial()"
-                        id="btn-salvar"
-                        class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition"
-                    >
+                </tbody>
 
-                        <i class="fa-solid fa-floppy-disk mr-2"></i>
+            </table>
 
-                        Salvar material
+        </div>
 
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
+    </div>
 
 
-        <!-- RESULTADO -->
-        <section
-            id="resultado"
-            class="hidden mt-10"
-        >
-
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-
-                <h2 class="text-2xl font-bold mb-6">
-                    Material cadastrado
-                </h2>
+</section>
 
 
-                <div
-                    id="dados-material"
-                    class="grid grid-cols-1 md:grid-cols-2 gap-4"
-                ></div>
+
+<!-- =========================================================
+     RESULTADO DO CADASTRO
+========================================================= -->
+
+<section
+    id="resultado"
+    class="hidden"
+>
 
 
-                <!-- QR CODE -->
-                <div class="mt-8">
+    <div class="mb-8">
 
-                    <h3 class="text-xl font-semibold mb-4">
-                        QR Code
-                    </h3>
+        <h2 class="text-3xl font-bold mb-2">
+            Material cadastrado
+        </h2>
 
-                    <div
-                        class="bg-white p-6 rounded-xl w-fit"
-                        id="qrcode"
-                    ></div>
+        <p class="text-gray-400">
+            O material foi salvo com sucesso.
+        </p>
 
-                </div>
+    </div>
 
 
-                <!-- BOTÕES -->
-                <div class="flex flex-wrap gap-3 mt-8">
 
-                    <button
-                        onclick="imprimirQR()"
-                        class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg"
-                    >
-
-                        <i class="fa-solid fa-print mr-2"></i>
-
-                        Imprimir QR Code
-
-                    </button>
+    <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
 
 
-                    <button
-                        onclick="novoMaterial()"
-                        class="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg"
-                    >
-
-                        <i class="fa-solid fa-plus mr-2"></i>
-
-                        Novo material
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
+        <div
+            id="dados-material"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+        ></div>
 
 
-        <!-- CONSULTA -->
-        <section
-            id="consulta"
-            class="hidden mt-10"
-        >
 
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <!-- QR -->
 
-                <h2 class="text-2xl font-bold mb-6">
-                    Informações do Material
-                </h2>
+        <div class="mt-8">
 
-                <div id="material-consulta"></div>
+            <h3 class="text-xl font-semibold mb-4">
+                QR Code
+            </h3>
 
-            </div>
 
-        </section>
+            <div
+                class="bg-white p-6 rounded-xl w-fit"
+                id="qrcode"
+            ></div>
 
-    </main>
+        </div>
+
+
+
+        <!-- BOTÕES -->
+
+        <div class="flex flex-wrap gap-3 mt-8">
+
+            <button
+                onclick="imprimirQR()"
+                class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg"
+            >
+
+                <i class="fa-solid fa-print mr-2"></i>
+
+                Imprimir QR Code
+
+            </button>
+
+
+            <button
+                onclick="mostrarHistorico()"
+                class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg"
+            >
+
+                <i class="fa-solid fa-clock-rotate-left mr-2"></i>
+
+                Ver histórico
+
+            </button>
+
+
+            <button
+                onclick="mostrarCadastro()"
+                class="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg"
+            >
+
+                <i class="fa-solid fa-plus mr-2"></i>
+
+                Novo material
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     CONSULTA PELO QR CODE
+========================================================= -->
+
+<section
+    id="consulta"
+    class="hidden"
+>
+
+
+    <div class="mb-8">
+
+        <h2 class="text-3xl font-bold mb-2">
+            Informações do Material
+        </h2>
+
+        <p class="text-gray-400">
+            Dados cadastrados no MaterialQR.
+        </p>
+
+    </div>
+
+
+
+    <div
+        class="bg-gray-900 rounded-2xl p-6 border border-gray-800"
+    >
+
+        <div id="material-consulta">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+</main>
+
 
 
 <script>
 
 /* =========================================================
-   SUPABASE
+   CONFIGURAÇÃO SUPABASE
 ========================================================= */
 
 const SUPABASE_URL =
     "https://ikisvkyecgnekdangouc.supabase.co";
+
 
 const SUPABASE_KEY =
     "sb_publishable_rJSK0QR1lYy5EiHjZqR6QA_CwiId6NY";
@@ -300,44 +587,147 @@ const db =
     );
 
 
+
 /* =========================================================
-   VERIFICAÇÃO DE PDF
+   VARIÁVEL DO HISTÓRICO
+========================================================= */
+
+let materiaisHistorico = [];
+
+
+
+/* =========================================================
+   TROCA DE TELAS
+========================================================= */
+
+function esconderTodasAsTelas() {
+
+    document
+        .getElementById("cadastro")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("historico")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("resultado")
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById("consulta")
+        .classList
+        .add("hidden");
+
+}
+
+
+
+function mostrarCadastro() {
+
+    esconderTodasAsTelas();
+
+
+    document
+        .getElementById("cadastro")
+        .classList
+        .remove("hidden");
+
+
+    window.scrollTo(
+        {
+            top: 0,
+            behavior: "smooth"
+        }
+    );
+
+}
+
+
+
+async function mostrarHistorico() {
+
+    esconderTodasAsTelas();
+
+
+    document
+        .getElementById("historico")
+        .classList
+        .remove("hidden");
+
+
+    await carregarHistorico();
+
+
+    window.scrollTo(
+        {
+            top: 0,
+            behavior: "smooth"
+        }
+    );
+
+}
+
+
+
+/* =========================================================
+   VALIDAR PDF
 ========================================================= */
 
 function validarPDF(arquivo) {
 
     if (!arquivo) {
+
         return true;
+
     }
+
 
     const tamanhoMaximo =
         5 * 1024 * 1024;
 
+
     if (arquivo.size > tamanhoMaximo) {
 
-        alert("O PDF não pode ter mais de 5 MB.");
+        alert(
+            "O PDF não pode ter mais de 5 MB."
+        );
 
         return false;
+
     }
 
 
     if (
         arquivo.type !== "application/pdf" &&
-        !arquivo.name.toLowerCase().endsWith(".pdf")
+        !arquivo.name
+            .toLowerCase()
+            .endsWith(".pdf")
     ) {
 
-        alert("Selecione um arquivo PDF válido.");
+        alert(
+            "Selecione um arquivo PDF válido."
+        );
 
         return false;
+
     }
 
 
     return true;
+
 }
 
 
+
 /* =========================================================
-   NOME SEGURO PARA O ARQUIVO
+   GERAR NOME SEGURO
 ========================================================= */
 
 function gerarNomeSeguro(nomeOriginal) {
@@ -347,20 +737,56 @@ function gerarNomeSeguro(nomeOriginal) {
             .replace(/\.[^/.]+$/, "")
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9_-]/g, "_")
-            .replace(/_+/g, "_")
-            .replace(/^_+|_+$/g, "");
+            .replace(
+                /[^a-zA-Z0-9_-]/g,
+                "_"
+            )
+            .replace(
+                /_+/g,
+                "_"
+            )
+            .replace(
+                /^_+|_+$/g,
+                ""
+            );
 
 
     if (!nome) {
 
-        nome = "certificado";
+        nome = "documentacao";
 
     }
 
 
-    return Date.now() + "_" + nome + ".pdf";
+    return (
+        Date.now() +
+        "_" +
+        nome +
+        ".pdf"
+    );
+
 }
+
+
+
+/* =========================================================
+   ESCAPAR HTML
+========================================================= */
+
+function escaparHTML(texto) {
+
+    const div =
+        document.createElement("div");
+
+
+    div.textContent =
+        texto ?? "";
+
+
+    return div.innerHTML;
+
+}
+
 
 
 /* =========================================================
@@ -370,41 +796,57 @@ function gerarNomeSeguro(nomeOriginal) {
 async function salvarMaterial() {
 
     const btn =
-        document.getElementById("btn-salvar");
+        document.getElementById(
+            "btn-salvar"
+        );
+
+
+    const os =
+        document
+            .getElementById("mat-os")
+            .value
+            .trim();
 
 
     const nome =
-        document.getElementById("mat-nome")
+        document
+            .getElementById("mat-nome")
             .value
             .trim();
 
 
     const dimensoes =
-        document.getElementById("mat-dimensoes")
-            .value
-            .trim();
-
-
-    const os =
-        document.getElementById("mat-os")
-            .value
-            .trim();
-
-
-    const certificado =
-        document.getElementById("mat-certificado")
+        document
+            .getElementById("mat-dimensoes")
             .value
             .trim();
 
 
     const aplicacao =
-        document.getElementById("mat-aplicacao")
+        document
+            .getElementById("mat-aplicacao")
+            .value
+            .trim();
+
+
+    const pedidoCompra =
+        document
+            .getElementById("mat-pedido")
+            .value
+            .trim();
+
+
+    const centroCusto =
+        document
+            .getElementById("mat-centro")
             .value
             .trim();
 
 
     const inputPDF =
-        document.getElementById("mat-pdf-file");
+        document.getElementById(
+            "mat-pdf-file"
+        );
 
 
     const arquivoPDF =
@@ -413,56 +855,95 @@ async function salvarMaterial() {
             : null;
 
 
-    /* ===============================
-       VALIDAÇÃO
-    =============================== */
+
+    /* =====================================================
+       VALIDAÇÕES
+    ===================================================== */
+
+    if (!os) {
+
+        alert(
+            "Informe o Nº de OS."
+        );
+
+        return;
+
+    }
+
 
     if (!nome) {
 
-        alert("Informe o nome do material.");
+        alert(
+            "Informe o material."
+        );
 
         return;
+
     }
 
 
     if (!dimensoes) {
 
-        alert("Informe as dimensões.");
+        alert(
+            "Informe as dimensões."
+        );
 
         return;
-    }
 
-
-    if (!os) {
-
-        alert("Informe a OS.");
-
-        return;
     }
 
 
     if (!aplicacao) {
 
-        alert("Informe a aplicação.");
+        alert(
+            "Informe a aplicação."
+        );
 
         return;
+
+    }
+
+
+    if (!pedidoCompra) {
+
+        alert(
+            "Informe o Pedido de Compra."
+        );
+
+        return;
+
+    }
+
+
+    if (!centroCusto) {
+
+        alert(
+            "Informe o Centro de Custo."
+        );
+
+        return;
+
     }
 
 
     if (!validarPDF(arquivoPDF)) {
 
         return;
+
     }
 
 
-    /* ===============================
-       DESABILITA BOTÃO
-    =============================== */
+
+    /* =====================================================
+       BOTÃO
+    ===================================================== */
 
     btn.disabled = true;
 
+
     btn.innerHTML =
         '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando...';
+
 
 
     try {
@@ -472,6 +953,7 @@ async function salvarMaterial() {
         let pdfNome = null;
 
 
+
         /* =================================================
            UPLOAD DO PDF
         ================================================= */
@@ -479,7 +961,9 @@ async function salvarMaterial() {
         if (arquivoPDF) {
 
             const nomeSeguro =
-                gerarNomeSeguro(arquivoPDF.name);
+                gerarNomeSeguro(
+                    arquivoPDF.name
+                );
 
 
             const upload =
@@ -490,9 +974,14 @@ async function salvarMaterial() {
                         nomeSeguro,
                         arquivoPDF,
                         {
-                            contentType: "application/pdf",
-                            cacheControl: "3600",
-                            upsert: false
+                            contentType:
+                                "application/pdf",
+
+                            cacheControl:
+                                "3600",
+
+                            upsert:
+                                false
                         }
                     );
 
@@ -504,11 +993,14 @@ async function salvarMaterial() {
                     upload.error
                 );
 
+
                 throw new Error(
                     "Erro ao enviar o PDF: " +
                     upload.error.message
                 );
+
             }
+
 
 
             /* =============================================
@@ -519,7 +1011,9 @@ async function salvarMaterial() {
                 db
                     .storage
                     .from("certificados")
-                    .getPublicUrl(nomeSeguro);
+                    .getPublicUrl(
+                        nomeSeguro
+                    );
 
 
             pdfUrl =
@@ -532,8 +1026,9 @@ async function salvarMaterial() {
         }
 
 
+
         /* =================================================
-           SALVAR DADOS NO BANCO
+           INSERIR NO BANCO
         ================================================= */
 
         const resultado =
@@ -541,24 +1036,34 @@ async function salvarMaterial() {
                 .from("materiais")
                 .insert({
 
-                    nome: nome,
+                    nome:
+                        nome,
 
-                    dimensoes: dimensoes,
+                    dimensoes:
+                        dimensoes,
 
-                    os: os,
+                    os:
+                        os,
 
-                    certificado:
-                        certificado || null,
+                    aplicacao:
+                        aplicacao,
 
-                    aplicacao: aplicacao,
+                    pedido_compra:
+                        pedidoCompra,
 
-                    pdf_url: pdfUrl,
+                    centro_custo:
+                        centroCusto,
 
-                    pdf_nome: pdfNome
+                    pdf_url:
+                        pdfUrl,
+
+                    pdf_nome:
+                        pdfNome
 
                 })
                 .select()
                 .single();
+
 
 
         if (resultado.error) {
@@ -568,11 +1073,14 @@ async function salvarMaterial() {
                 resultado.error
             );
 
+
             throw new Error(
                 "Erro ao salvar material: " +
                 resultado.error.message
             );
+
         }
+
 
 
         /* =================================================
@@ -584,9 +1092,15 @@ async function salvarMaterial() {
         );
 
 
+
         /* =================================================
            LIMPAR FORMULÁRIO
         ================================================= */
+
+        document
+            .getElementById("mat-os")
+            .value = "";
+
 
         document
             .getElementById("mat-nome")
@@ -599,23 +1113,24 @@ async function salvarMaterial() {
 
 
         document
-            .getElementById("mat-os")
-            .value = "";
-
-
-        document
-            .getElementById("mat-certificado")
-            .value = "";
-
-
-        document
             .getElementById("mat-aplicacao")
+            .value = "";
+
+
+        document
+            .getElementById("mat-pedido")
+            .value = "";
+
+
+        document
+            .getElementById("mat-centro")
             .value = "";
 
 
         document
             .getElementById("mat-pdf-file")
             .value = "";
+
 
 
         alert(
@@ -635,9 +1150,11 @@ async function salvarMaterial() {
             "Ocorreu um erro ao salvar o material."
         );
 
+
     } finally {
 
         btn.disabled = false;
+
 
         btn.innerHTML =
             '<i class="fa-solid fa-floppy-disk mr-2"></i> Salvar material';
@@ -647,16 +1164,14 @@ async function salvarMaterial() {
 }
 
 
+
 /* =========================================================
    MOSTRAR RESULTADO
 ========================================================= */
 
 function mostrarResultado(material) {
 
-    document
-        .getElementById("cadastro")
-        .classList
-        .add("hidden");
+    esconderTodasAsTelas();
 
 
     document
@@ -673,71 +1188,71 @@ function mostrarResultado(material) {
 
     container.innerHTML = `
 
-        <div class="bg-gray-900 rounded-lg p-4">
+        ${campoResultado(
+            "Nº de OS",
+            material.os
+        )}
+
+        ${campoResultado(
+            "Material",
+            material.nome
+        )}
+
+        ${campoResultado(
+            "Dimensões",
+            material.dimensoes
+        )}
+
+        ${campoResultado(
+            "Aplicação",
+            material.aplicacao
+        )}
+
+        ${campoResultado(
+            "Pedido de Compra",
+            material.pedido_compra
+        )}
+
+        ${campoResultado(
+            "Centro de Custo",
+            material.centro_custo
+        )}
+
+        <div class="bg-gray-950 rounded-lg p-4 md:col-span-2">
 
             <p class="text-gray-400 text-sm">
-                Nome
+                Documentação
             </p>
 
-            <p class="font-semibold mt-1">
-                ${escaparHTML(material.nome)}
-            </p>
+            ${
+                material.pdf_url
+                ?
+                `
+                    <a
+                        href="${escaparHTML(material.pdf_url)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center mt-3 bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg font-semibold"
+                    >
 
-        </div>
+                        <i class="fa-solid fa-file-pdf mr-2"></i>
 
+                        Abrir PDF
 
-        <div class="bg-gray-900 rounded-lg p-4">
-
-            <p class="text-gray-400 text-sm">
-                Dimensões
-            </p>
-
-            <p class="font-semibold mt-1">
-                ${escaparHTML(material.dimensoes)}
-            </p>
-
-        </div>
-
-
-        <div class="bg-gray-900 rounded-lg p-4">
-
-            <p class="text-gray-400 text-sm">
-                OS
-            </p>
-
-            <p class="font-semibold mt-1">
-                ${escaparHTML(material.os)}
-            </p>
-
-        </div>
-
-
-        <div class="bg-gray-900 rounded-lg p-4">
-
-            <p class="text-gray-400 text-sm">
-                Certificado
-            </p>
-
-            <p class="font-semibold mt-1">
-                ${escaparHTML(material.certificado || "-")}
-            </p>
-
-        </div>
-
-
-        <div class="bg-gray-900 rounded-lg p-4 md:col-span-2">
-
-            <p class="text-gray-400 text-sm">
-                Aplicação
-            </p>
-
-            <p class="font-semibold mt-1">
-                ${escaparHTML(material.aplicacao)}
-            </p>
+                    </a>
+                `
+                :
+                `
+                    <p class="text-gray-500 mt-2">
+                        Nenhum PDF cadastrado.
+                    </p>
+                `
+            }
 
         </div>
 
     `;
+
 
 
     /* =====================================================
@@ -745,7 +1260,9 @@ function mostrarResultado(material) {
     ===================================================== */
 
     const qr =
-        document.getElementById("qrcode");
+        document.getElementById(
+            "qrcode"
+        );
 
 
     qr.innerHTML = "";
@@ -760,171 +1277,412 @@ function mostrarResultado(material) {
     new QRCode(
         qr,
         {
-            text: urlQR,
-            width: 220,
-            height: 220
+            text:
+                urlQR,
+
+            width:
+                220,
+
+            height:
+                220
         }
     );
 
 }
 
 
-/* =========================================================
-   ESCAPAR HTML
-========================================================= */
-
-function escaparHTML(texto) {
-
-    const div =
-        document.createElement("div");
-
-
-    div.textContent =
-        texto;
-
-
-    return div.innerHTML;
-}
-
 
 /* =========================================================
-   NOVO MATERIAL
+   CAMPO DO RESULTADO
 ========================================================= */
 
-function novoMaterial() {
+function campoResultado(
+    titulo,
+    valor
+) {
 
-    document
-        .getElementById("resultado")
-        .classList
-        .add("hidden");
+    return `
 
+        <div class="bg-gray-950 rounded-lg p-4">
 
-    document
-        .getElementById("cadastro")
-        .classList
-        .remove("hidden");
+            <p class="text-gray-400 text-sm">
+                ${titulo}
+            </p>
 
+            <p class="font-semibold mt-1">
+                ${escaparHTML(valor || "-")}
+            </p>
 
-    window.scrollTo(
-        {
-            top: 0,
-            behavior: "smooth"
-        }
-    );
+        </div>
+
+    `;
 
 }
 
 
+
 /* =========================================================
-   IMPRIMIR QR CODE
+   CARREGAR HISTÓRICO
 ========================================================= */
 
-function imprimirQR() {
+async function carregarHistorico() {
 
-    const qr =
-        document.getElementById("qrcode");
-
-
-    if (!qr.innerHTML) {
-
-        alert(
-            "QR Code não encontrado."
+    const tabela =
+        document.getElementById(
+            "tabela-historico"
         );
 
+
+    tabela.innerHTML = `
+
+        <tr>
+
+            <td
+                colspan="8"
+                class="text-center py-10 text-gray-400"
+            >
+
+                <i class="fa-solid fa-spinner fa-spin text-xl"></i>
+
+                <p class="mt-3">
+                    Carregando histórico...
+                </p>
+
+            </td>
+
+        </tr>
+
+    `;
+
+
+
+    try {
+
+        const resultado =
+            await db
+                .from("materiais")
+                .select("*")
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (resultado.error) {
+
+            throw new Error(
+                resultado.error.message
+            );
+
+        }
+
+
+        materiaisHistorico =
+            resultado.data || [];
+
+
+        renderizarHistorico(
+            materiaisHistorico
+        );
+
+
+    } catch (erro) {
+
+        console.error(
+            erro
+        );
+
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="text-center py-10 text-red-400"
+                >
+
+                    <i class="fa-solid fa-circle-exclamation text-2xl"></i>
+
+                    <p class="mt-3">
+                        Erro ao carregar histórico.
+                    </p>
+
+                    <p class="text-sm text-gray-500 mt-1">
+                        ${escaparHTML(erro.message)}
+                    </p>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+/* =========================================================
+   RENDERIZAR HISTÓRICO
+========================================================= */
+
+function renderizarHistorico(lista) {
+
+    const tabela =
+        document.getElementById(
+            "tabela-historico"
+        );
+
+
+    if (!lista.length) {
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="text-center py-10 text-gray-500"
+                >
+
+                    Nenhum material cadastrado.
+
+                </td>
+
+            </tr>
+
+        `;
+
         return;
+
     }
 
 
-    const janela =
-        window.open(
-            "",
-            "_blank"
-        );
+
+    tabela.innerHTML =
+        lista
+            .map(
+                material => `
+
+                    <tr
+                        class="border-t border-gray-800 hover:bg-gray-800 transition"
+                    >
+
+                        <td class="px-5 py-4">
+
+                            ${escaparHTML(
+                                material.os
+                            )}
+
+                        </td>
 
 
-    janela.document.write(`
+                        <td class="px-5 py-4 font-medium">
 
-        <html>
+                            ${escaparHTML(
+                                material.nome
+                            )}
 
-        <head>
-
-            <title>
-                QR Code - Material
-            </title>
-
-            <style>
-
-                body {
-
-                    font-family: Arial;
-
-                    display: flex;
-
-                    flex-direction: column;
-
-                    align-items: center;
-
-                    justify-content: center;
-
-                    min-height: 100vh;
-
-                }
-
-                img {
-
-                    width: 300px;
-
-                    height: 300px;
-
-                }
-
-            </style>
-
-        </head>
+                        </td>
 
 
-        <body>
+                        <td class="px-5 py-4 text-gray-300">
 
-            ${qr.innerHTML}
+                            ${escaparHTML(
+                                material.dimensoes
+                            )}
 
-            <script>
-
-                window.onload = function() {
-
-                    window.print();
-
-                };
-
-            <\/script>
-
-        </body>
-
-        </html>
-
-    `);
+                        </td>
 
 
-    janela.document.close();
+                        <td class="px-5 py-4 text-gray-300">
+
+                            ${escaparHTML(
+                                material.aplicacao
+                            )}
+
+                        </td>
+
+
+                        <td class="px-5 py-4">
+
+                            ${escaparHTML(
+                                material.pedido_compra
+                            )}
+
+                        </td>
+
+
+                        <td class="px-5 py-4">
+
+                            ${escaparHTML(
+                                material.centro_custo
+                            )}
+
+                        </td>
+
+
+                        <td class="px-5 py-4 text-center">
+
+                            ${
+                                material.pdf_url
+                                ?
+
+                                `
+
+                                    <a
+                                        href="${escaparHTML(material.pdf_url)}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center justify-center bg-red-600 hover:bg-red-700 w-9 h-9 rounded-lg"
+                                        title="Abrir PDF"
+                                    >
+
+                                        <i class="fa-solid fa-file-pdf"></i>
+
+                                    </a>
+
+                                `
+
+                                :
+
+                                `
+
+                                    <span
+                                        class="text-gray-600"
+                                        title="Sem PDF"
+                                    >
+
+                                        <i class="fa-solid fa-file-circle-xmark"></i>
+
+                                    </span>
+
+                                `
+                            }
+
+                        </td>
+
+
+                        <td class="px-5 py-4 text-center">
+
+                            <button
+                                onclick="verMaterial(${material.id})"
+                                class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg"
+                                title="Ver material"
+                            >
+
+                                <i class="fa-solid fa-eye"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `
+            )
+            .join("");
 
 }
 
 
+
 /* =========================================================
-   CARREGAR MATERIAL PELO ID DO QR CODE
+   FILTRAR HISTÓRICO
 ========================================================= */
 
-async function carregarMaterial(id) {
+function filtrarHistorico() {
 
-    document
-        .getElementById("cadastro")
-        .classList
-        .add("hidden");
+    const termo =
+        document
+            .getElementById(
+                "campo-pesquisa"
+            )
+            .value
+            .toLowerCase()
+            .trim();
 
 
-    document
-        .getElementById("resultado")
-        .classList
-        .add("hidden");
+    if (!termo) {
+
+        renderizarHistorico(
+            materiaisHistorico
+        );
+
+        return;
+
+    }
+
+
+    const filtrados =
+        materiaisHistorico.filter(
+            material => {
+
+                return (
+
+                    String(
+                        material.os || ""
+                    )
+                        .toLowerCase()
+                        .includes(termo)
+
+                    ||
+
+                    String(
+                        material.nome || ""
+                    )
+                        .toLowerCase()
+                        .includes(termo)
+
+                    ||
+
+                    String(
+                        material.pedido_compra || ""
+                    )
+                        .toLowerCase()
+                        .includes(termo)
+
+                    ||
+
+                    String(
+                        material.centro_custo || ""
+                    )
+                        .toLowerCase()
+                        .includes(termo)
+
+                    ||
+
+                    String(
+                        material.aplicacao || ""
+                    )
+                        .toLowerCase()
+                        .includes(termo)
+
+                );
+
+            }
+        );
+
+
+    renderizarHistorico(
+        filtrados
+    );
+
+}
+
+
+
+/* =========================================================
+   VER MATERIAL
+========================================================= */
+
+async function verMaterial(id) {
+
+    esconderTodasAsTelas();
 
 
     document
@@ -954,13 +1712,17 @@ async function carregarMaterial(id) {
     `;
 
 
+
     try {
 
         const resultado =
             await db
                 .from("materiais")
                 .select("*")
-                .eq("id", id)
+                .eq(
+                    "id",
+                    id
+                )
                 .single();
 
 
@@ -973,136 +1735,9 @@ async function carregarMaterial(id) {
         }
 
 
-        const material =
-            resultado.data;
-
-
-        let pdfHTML =
-            `
-                <div class="bg-gray-900 rounded-lg p-4">
-
-                    <p class="text-gray-400 text-sm">
-                        Certificado PDF
-                    </p>
-
-                    <p class="mt-2 text-gray-500">
-                        Nenhum certificado cadastrado.
-                    </p>
-
-                </div>
-            `;
-
-
-        if (material.pdf_url) {
-
-            pdfHTML = `
-
-                <div class="bg-gray-900 rounded-lg p-4">
-
-                    <p class="text-gray-400 text-sm">
-                        Certificado PDF
-                    </p>
-
-
-                    <a
-                        href="${escaparHTML(material.pdf_url)}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-flex items-center mt-3 bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg font-semibold"
-                    >
-
-                        <i class="fa-solid fa-file-pdf mr-2"></i>
-
-                        Abrir certificado
-
-                    </a>
-
-                </div>
-
-            `;
-
-        }
-
-
-        container.innerHTML = `
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-
-                <div class="bg-gray-900 rounded-lg p-5">
-
-                    <p class="text-gray-400 text-sm">
-                        Nome
-                    </p>
-
-                    <p class="text-lg font-semibold mt-1">
-                        ${escaparHTML(material.nome)}
-                    </p>
-
-                </div>
-
-
-                <div class="bg-gray-900 rounded-lg p-5">
-
-                    <p class="text-gray-400 text-sm">
-                        Dimensões
-                    </p>
-
-                    <p class="text-lg font-semibold mt-1">
-                        ${escaparHTML(material.dimensoes)}
-                    </p>
-
-                </div>
-
-
-                <div class="bg-gray-900 rounded-lg p-5">
-
-                    <p class="text-gray-400 text-sm">
-                        OS
-                    </p>
-
-                    <p class="text-lg font-semibold mt-1">
-                        ${escaparHTML(material.os)}
-                    </p>
-
-                </div>
-
-
-                <div class="bg-gray-900 rounded-lg p-5">
-
-                    <p class="text-gray-400 text-sm">
-                        Certificado
-                    </p>
-
-                    <p class="text-lg font-semibold mt-1">
-                        ${escaparHTML(material.certificado || "-")}
-                    </p>
-
-                </div>
-
-
-                <div class="bg-gray-900 rounded-lg p-5 md:col-span-2">
-
-                    <p class="text-gray-400 text-sm">
-                        Aplicação
-                    </p>
-
-                    <p class="text-lg font-semibold mt-1">
-                        ${escaparHTML(material.aplicacao)}
-                    </p>
-
-                </div>
-
-
-                <div class="md:col-span-2">
-
-                    ${pdfHTML}
-
-                </div>
-
-            </div>
-
-        `;
+        mostrarDetalhes(
+            resultado.data
+        );
 
 
     } catch (erro) {
@@ -1122,10 +1757,6 @@ async function carregarMaterial(id) {
                     Material não encontrado
                 </p>
 
-                <p class="text-gray-400 mt-2">
-                    Verifique se o QR Code está correto.
-                </p>
-
             </div>
 
         `;
@@ -1135,8 +1766,268 @@ async function carregarMaterial(id) {
 }
 
 
+
 /* =========================================================
-   VERIFICAR ID NA URL
+   DETALHES DO MATERIAL
+========================================================= */
+
+function mostrarDetalhes(material) {
+
+    const container =
+        document.getElementById(
+            "material-consulta"
+        );
+
+
+    container.innerHTML = `
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
+            ${campoResultado(
+                "Nº de OS",
+                material.os
+            )}
+
+
+            ${campoResultado(
+                "Material",
+                material.nome
+            )}
+
+
+            ${campoResultado(
+                "Dimensões",
+                material.dimensoes
+            )}
+
+
+            ${campoResultado(
+                "Aplicação",
+                material.aplicacao
+            )}
+
+
+            ${campoResultado(
+                "Pedido de Compra",
+                material.pedido_compra
+            )}
+
+
+            ${campoResultado(
+                "Centro de Custo",
+                material.centro_custo
+            )}
+
+
+
+            <!-- DOCUMENTAÇÃO -->
+
+            <div class="bg-gray-950 rounded-lg p-5 md:col-span-2">
+
+                <p class="text-gray-400 text-sm">
+                    Documentação
+                </p>
+
+
+                ${
+                    material.pdf_url
+                    ?
+
+                    `
+
+                        <div class="mt-4">
+
+                            <p class="text-sm text-gray-300 mb-3">
+
+                                <i class="fa-solid fa-file-pdf text-red-400 mr-2"></i>
+
+                                ${escaparHTML(
+                                    material.pdf_nome ||
+                                    "Documento PDF"
+                                )}
+
+                            </p>
+
+
+                            <a
+                                href="${escaparHTML(material.pdf_url)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg font-semibold"
+                            >
+
+                                <i class="fa-solid fa-file-pdf mr-2"></i>
+
+                                Abrir documentação
+
+                            </a>
+
+                        </div>
+
+                    `
+
+                    :
+
+                    `
+
+                        <p class="text-gray-500 mt-3">
+                            Nenhuma documentação cadastrada.
+                        </p>
+
+                    `
+                }
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- BOTÃO VOLTAR -->
+
+        <div class="mt-8">
+
+            <button
+                onclick="mostrarHistorico()"
+                class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg"
+            >
+
+                <i class="fa-solid fa-arrow-left mr-2"></i>
+
+                Voltar ao histórico
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+
+/* =========================================================
+   CARREGAR MATERIAL PELO QR CODE
+========================================================= */
+
+async function carregarMaterial(id) {
+
+    await verMaterial(id);
+
+}
+
+
+
+/* =========================================================
+   IMPRIMIR QR CODE
+========================================================= */
+
+function imprimirQR() {
+
+    const qr =
+        document.getElementById(
+            "qrcode"
+        );
+
+
+    if (!qr.innerHTML) {
+
+        alert(
+            "QR Code não encontrado."
+        );
+
+        return;
+
+    }
+
+
+    const janela =
+        window.open(
+            "",
+            "_blank"
+        );
+
+
+    janela.document.write(`
+
+        <html>
+
+        <head>
+
+            <title>
+                QR Code - Material
+            </title>
+
+
+            <style>
+
+                body {
+
+                    font-family: Arial;
+
+                    display: flex;
+
+                    flex-direction: column;
+
+                    align-items: center;
+
+                    justify-content: center;
+
+                    min-height: 100vh;
+
+                }
+
+
+                img {
+
+                    width: 300px;
+
+                    height: 300px;
+
+                }
+
+            </style>
+
+        </head>
+
+
+        <body>
+
+            <h2>
+                MaterialQR
+            </h2>
+
+
+            ${qr.innerHTML}
+
+
+            <script>
+
+                window.onload = function() {
+
+                    window.print();
+
+                };
+
+            <\/script>
+
+        </body>
+
+        </html>
+
+    `);
+
+
+    janela.document.close();
+
+}
+
+
+
+/* =========================================================
+   VERIFICAR ID DO QR CODE
 ========================================================= */
 
 window.addEventListener(
@@ -1164,6 +2055,8 @@ window.addEventListener(
 
 </script>
 
+
 </body>
+
 </html>
 ```
