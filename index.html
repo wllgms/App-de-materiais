@@ -1,41 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>MaterialQR - Gestão Industrial</title>
 
-
-    <!-- Tailwind -->
-
     <script src="https://cdn.tailwindcss.com"></script>
-
-
-    <!-- QR Code -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-
-    <!-- Supabase -->
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-    <!-- Font Awesome -->
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-
         body {
             background: #111827;
         }
@@ -48,18 +28,10 @@
         #qrcode img {
             margin: auto;
         }
-
     </style>
-
 </head>
 
-
 <body class="text-white min-h-screen">
-
-
-<!-- =====================================================
-     CABEÇALHO
-====================================================== -->
 
 <header class="bg-gray-900 border-b border-gray-700">
 
@@ -68,14 +40,10 @@
         <div class="flex items-center gap-3">
 
             <div class="bg-blue-600 w-11 h-11 rounded-xl flex items-center justify-center">
-
                 <i class="fa-solid fa-qrcode text-xl"></i>
-
             </div>
 
-
             <div>
-
                 <h1 class="text-2xl font-bold">
                     MaterialQR
                 </h1>
@@ -83,7 +51,6 @@
                 <p class="text-gray-400 text-sm">
                     Gestão Industrial
                 </p>
-
             </div>
 
         </div>
@@ -92,11 +59,6 @@
 
 </header>
 
-
-
-<!-- =====================================================
-     CONTEÚDO
-====================================================== -->
 
 <main class="max-w-6xl mx-auto px-6 py-8">
 
@@ -120,13 +82,10 @@
     </div>
 
 
-
     <div class="grid lg:grid-cols-2 gap-8">
 
 
-        <!-- =================================================
-             FORMULÁRIO
-        ================================================== -->
+        <!-- FORMULÁRIO -->
 
         <div class="glass rounded-2xl p-6 border border-gray-700">
 
@@ -137,7 +96,6 @@
                 Informações do material
 
             </h3>
-
 
 
             <!-- NOME -->
@@ -158,7 +116,6 @@
             </div>
 
 
-
             <!-- DIMENSÕES -->
 
             <div class="mb-5">
@@ -175,7 +132,6 @@
                 >
 
             </div>
-
 
 
             <!-- OS -->
@@ -196,7 +152,6 @@
             </div>
 
 
-
             <!-- CERTIFICADO -->
 
             <div class="mb-5">
@@ -213,7 +168,6 @@
                 >
 
             </div>
-
 
 
             <!-- PDF -->
@@ -243,7 +197,6 @@
             </div>
 
 
-
             <!-- APLICAÇÃO -->
 
             <div class="mb-6">
@@ -262,7 +215,6 @@
             </div>
 
 
-
             <!-- BOTÃO -->
 
             <button
@@ -278,9 +230,6 @@
             </button>
 
 
-
-            <!-- MENSAGEM -->
-
             <div
                 id="mensagem"
                 class="hidden mt-4 rounded-lg p-4 text-sm"
@@ -290,9 +239,7 @@
 
 
 
-        <!-- =================================================
-             QR CODE
-        ================================================== -->
+        <!-- QR CODE -->
 
         <div class="glass rounded-2xl p-6 border border-gray-700">
 
@@ -305,20 +252,16 @@
             </h3>
 
 
-
             <div
                 id="qr-area"
                 class="hidden"
             >
 
-                <div
-                    class="bg-white rounded-xl p-6 flex justify-center"
-                >
+                <div class="bg-white rounded-xl p-6 flex justify-center">
 
                     <div id="qrcode"></div>
 
                 </div>
-
 
 
                 <div class="mt-6">
@@ -335,7 +278,6 @@
                 </div>
 
 
-
                 <div class="flex gap-3 mt-5">
 
                     <button
@@ -348,7 +290,6 @@
                         Imprimir
 
                     </button>
-
 
 
                     <button
@@ -365,7 +306,6 @@
                 </div>
 
             </div>
-
 
 
             <div
@@ -412,7 +352,6 @@
         </button>
 
 
-
         <h2
             id="view-nome"
             class="text-3xl font-bold"
@@ -426,11 +365,10 @@
     </div>
 
 
-
     <div class="grid md:grid-cols-2 gap-6">
 
 
-        <!-- DADOS -->
+        <!-- INFORMAÇÕES -->
 
         <div class="glass rounded-2xl p-6 border border-gray-700">
 
@@ -439,9 +377,7 @@
             </h3>
 
 
-
             <div class="space-y-5">
-
 
                 <div>
 
@@ -455,7 +391,6 @@
                     ></p>
 
                 </div>
-
 
 
                 <div>
@@ -472,7 +407,6 @@
                 </div>
 
 
-
                 <div>
 
                     <p class="text-gray-500 text-sm">
@@ -485,7 +419,6 @@
                     ></p>
 
                 </div>
-
 
 
                 <div>
@@ -502,7 +435,6 @@
                 </div>
 
 
-
                 <div>
 
                     <p class="text-gray-500 text-sm">
@@ -515,7 +447,6 @@
                     ></p>
 
                 </div>
-
 
             </div>
 
@@ -536,7 +467,6 @@
             </h3>
 
 
-
             <div
                 id="pdf-disponivel"
                 class="hidden"
@@ -554,7 +484,6 @@
                 </div>
 
 
-
                 <a
                     id="btn-open-pdf"
                     href="#"
@@ -570,7 +499,6 @@
                 </a>
 
             </div>
-
 
 
             <div
@@ -596,15 +524,11 @@
 
 
 
-<!-- =====================================================
-     JAVASCRIPT
-====================================================== -->
-
 <script>
 
 
 // =====================================================
-// CONFIGURAÇÃO SUPABASE
+// SUPABASE
 // =====================================================
 
 const SUPABASE_URL =
@@ -615,7 +539,10 @@ const SUPABASE_KEY =
     "COLE_AQUI_SUA_CHAVE_PUBLICA";
 
 
-const supabaseClient =
+// IMPORTANTE:
+// usamos "db" para evitar conflito de nomes
+
+const db =
     window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
@@ -624,7 +551,7 @@ const supabaseClient =
 
 
 // =====================================================
-// VARIÁVEL DO MATERIAL ATUAL
+// VARIÁVEL DO MATERIAL
 // =====================================================
 
 let materialAtual = null;
@@ -632,7 +559,7 @@ let materialAtual = null;
 
 
 // =====================================================
-// SELEÇÃO DO PDF
+// PDF SELECIONADO
 // =====================================================
 
 document
@@ -641,7 +568,7 @@ document
         "change",
         function(event) {
 
-            const file =
+            const arquivo =
                 event.target.files[0];
 
 
@@ -651,7 +578,7 @@ document
                 );
 
 
-            if (!file) {
+            if (!arquivo) {
 
                 status.textContent = "";
 
@@ -661,8 +588,10 @@ document
 
 
             if (
-                file.type !== "application/pdf" &&
-                !file.name.toLowerCase().endsWith(".pdf")
+                arquivo.type !== "application/pdf" &&
+                !arquivo.name
+                    .toLowerCase()
+                    .endsWith(".pdf")
             ) {
 
                 alert(
@@ -679,7 +608,7 @@ document
 
 
             if (
-                file.size >
+                arquivo.size >
                 5 * 1024 * 1024
             ) {
 
@@ -703,7 +632,7 @@ document
                     <i class="fa-solid fa-check mr-1"></i>
 
                     PDF selecionado:
-                    ${file.name}
+                    ${arquivo.name}
 
                 </span>
 
@@ -715,7 +644,7 @@ document
 
 
 // =====================================================
-// NOME SEGURO DO PDF
+// NOME SEGURO
 // =====================================================
 
 function gerarNomeSeguro(nomeOriginal) {
@@ -819,7 +748,8 @@ function mostrarMensagem(
     }
 
 
-    elemento.innerHTML = texto;
+    elemento.innerHTML =
+        texto;
 
 }
 
@@ -868,7 +798,7 @@ async function salvarMaterial() {
         ).value.trim();
 
 
-    // PEGAMOS O PDF DIRETAMENTE DO INPUT
+    // PEGAR PDF DIRETAMENTE DO INPUT
 
     const inputPDF =
         document.getElementById(
@@ -920,36 +850,16 @@ async function salvarMaterial() {
         `;
 
 
-        mostrarMensagem(
-            "Salvando material...",
-            "aviso"
-        );
-
-
-
         // =================================================
-        // VARIÁVEIS DO PDF
+        // PDF
         // =================================================
 
         let pdfUrl = null;
 
         let pdfNome = null;
 
-        let nomeSeguro = null;
-
-
-
-        // =================================================
-        // UPLOAD PDF
-        // =================================================
 
         if (arquivoPDF) {
-
-
-            nomeSeguro =
-                gerarNomeSeguro(
-                    arquivoPDF.name
-                );
 
 
             mostrarMensagem(
@@ -958,8 +868,24 @@ async function salvarMaterial() {
             );
 
 
-            const resultadoUpload =
-                await supabaseClient
+            const nomeSeguro =
+                gerarNomeSeguro(
+                    arquivoPDF.name
+                );
+
+
+            console.log(
+                "Nome do arquivo:",
+                nomeSeguro
+            );
+
+
+            // =============================================
+            // UPLOAD
+            // =============================================
+
+            const upload =
+                await db
                     .storage
                     .from("certificados")
                     .upload(
@@ -978,30 +904,28 @@ async function salvarMaterial() {
                     );
 
 
-            if (resultadoUpload.error) {
-
+            if (upload.error) {
 
                 console.error(
-                    "ERRO UPLOAD:",
-                    resultadoUpload.error
+                    "ERRO NO UPLOAD:",
+                    upload.error
                 );
 
 
                 throw new Error(
                     "Erro ao enviar o PDF: " +
-                    resultadoUpload.error.message
+                    upload.error.message
                 );
 
             }
 
 
+            // =============================================
+            // URL
+            // =============================================
 
-            // =================================================
-            // URL PÚBLICA
-            // =================================================
-
-            const resultadoURL =
-                supabaseClient
+            const url =
+                db
                     .storage
                     .from("certificados")
                     .getPublicUrl(
@@ -1010,9 +934,7 @@ async function salvarMaterial() {
 
 
             pdfUrl =
-                resultadoURL
-                    .data
-                    .publicUrl;
+                url.data.publicUrl;
 
 
             pdfNome =
@@ -1023,7 +945,7 @@ async function salvarMaterial() {
 
 
         // =================================================
-        // SALVAR NO BANCO
+        // BANCO
         // =================================================
 
         mostrarMensagem(
@@ -1032,8 +954,8 @@ async function salvarMaterial() {
         );
 
 
-        const resultadoBanco =
-            await supabaseClient
+        const resultado =
+            await db
                 .from("materiais")
                 .insert({
 
@@ -1064,18 +986,17 @@ async function salvarMaterial() {
 
 
 
-        if (resultadoBanco.error) {
-
+        if (resultado.error) {
 
             console.error(
-                "ERRO BANCO:",
-                resultadoBanco.error
+                "ERRO NO BANCO:",
+                resultado.error
             );
 
 
             throw new Error(
-                "Erro ao salvar o material no banco: " +
-                resultadoBanco.error.message
+                "Erro ao salvar no banco: " +
+                resultado.error.message
             );
 
         }
@@ -1083,17 +1004,12 @@ async function salvarMaterial() {
 
 
         // =================================================
-        // MATERIAL SALVO
+        // SUCESSO
         // =================================================
 
         materialAtual =
-            resultadoBanco.data;
+            resultado.data;
 
-
-
-        // =================================================
-        // QR CODE
-        // =================================================
 
         gerarQRCode(
             materialAtual.id
@@ -1126,74 +1042,62 @@ async function salvarMaterial() {
             );
 
 
-
         mostrarMensagem(
             "Material cadastrado com sucesso!",
             "sucesso"
         );
 
 
+        // LIMPAR
 
-        // =================================================
-        // LIMPAR FORMULÁRIO
-        // =================================================
-
-        document
-            .getElementById(
-                "mat-nome"
-            ).value = "";
+        document.getElementById(
+            "mat-nome"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "mat-dimensoes"
-            ).value = "";
+        document.getElementById(
+            "mat-dimensoes"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "mat-os"
-            ).value = "";
+        document.getElementById(
+            "mat-os"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "mat-certificado"
-            ).value = "";
+        document.getElementById(
+            "mat-certificado"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "mat-aplicacao"
-            ).value = "";
+        document.getElementById(
+            "mat-aplicacao"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "mat-pdf-file"
-            ).value = "";
+        document.getElementById(
+            "mat-pdf-file"
+        ).value = "";
 
 
-        document
-            .getElementById(
-                "pdf-status"
-            ).textContent = "";
-
+        document.getElementById(
+            "pdf-status"
+        ).textContent = "";
 
     }
 
 
-    catch (error) {
+    catch (erro) {
 
 
         console.error(
             "ERRO COMPLETO:",
-            error
+            erro
         );
 
 
         mostrarMensagem(
-            error.message ||
+            erro.message ||
             "Ocorreu um erro ao salvar.",
             "erro"
         );
@@ -1222,7 +1126,7 @@ async function salvarMaterial() {
 
 
 // =====================================================
-// GERAR QR CODE
+// QR CODE
 // =====================================================
 
 function gerarQRCode(id) {
@@ -1246,7 +1150,6 @@ function gerarQRCode(id) {
         baseUrl +
         "?id=" +
         encodeURIComponent(id);
-
 
 
     new QRCode(
@@ -1338,7 +1241,7 @@ function imprimirQR() {
     if (!janela) {
 
         alert(
-            "Permita pop-ups no navegador para imprimir o QR Code."
+            "Permita pop-ups no navegador para imprimir."
         );
 
         return;
@@ -1430,12 +1333,11 @@ async function carregarMaterial(id) {
 
 
         const resultado =
-            await supabaseClient
+            await db
                 .from("materiais")
                 .select("*")
                 .eq("id", id)
                 .single();
-
 
 
         if (resultado.error) {
@@ -1450,99 +1352,73 @@ async function carregarMaterial(id) {
 
 
 
-        // =================================================
-        // DADOS
-        // =================================================
-
-        document
-            .getElementById(
-                "view-nome"
-            )
-            .textContent =
+        document.getElementById(
+            "view-nome"
+        ).textContent =
             data.nome;
 
 
-        document
-            .getElementById(
-                "view-nome-2"
-            )
-            .textContent =
+        document.getElementById(
+            "view-nome-2"
+        ).textContent =
             data.nome;
 
 
-        document
-            .getElementById(
-                "view-dimensoes"
-            )
-            .textContent =
+        document.getElementById(
+            "view-dimensoes"
+        ).textContent =
             data.dimensoes;
 
 
-        document
-            .getElementById(
-                "view-os"
-            )
-            .textContent =
+        document.getElementById(
+            "view-os"
+        ).textContent =
             data.os;
 
 
-        document
-            .getElementById(
-                "view-certificado"
-            )
-            .textContent =
+        document.getElementById(
+            "view-certificado"
+        ).textContent =
             data.certificado ||
             "Não informado";
 
 
-        document
-            .getElementById(
-                "view-aplicacao"
-            )
-            .textContent =
+        document.getElementById(
+            "view-aplicacao"
+        ).textContent =
             data.aplicacao;
 
 
 
-        // =================================================
         // PDF
-        // =================================================
 
         if (data.pdf_url) {
 
 
-            document
-                .getElementById(
-                    "pdf-disponivel"
-                )
-                .classList.remove(
-                    "hidden"
-                );
+            document.getElementById(
+                "pdf-disponivel"
+            ).classList.remove(
+                "hidden"
+            );
 
 
-            document
-                .getElementById(
-                    "pdf-indisponivel"
-                )
-                .classList.add(
-                    "hidden"
-                );
+            document.getElementById(
+                "pdf-indisponivel"
+            ).classList.add(
+                "hidden"
+            );
 
 
-            document
-                .getElementById(
-                    "view-pdf-nome"
-                )
-                .textContent =
+            document.getElementById(
+                "view-pdf-nome"
+            ).textContent =
                 data.pdf_nome ||
                 "Certificado.pdf";
 
 
-            document
-                .getElementById(
-                    "btn-open-pdf"
-                )
-                .href =
+            document.getElementById(
+                "btn-open-pdf"
+            ).href =
                 data.pdf_url;
 
         }
@@ -1550,63 +1426,53 @@ async function carregarMaterial(id) {
         else {
 
 
-            document
-                .getElementById(
-                    "pdf-disponivel"
-                )
-                .classList.add(
-                    "hidden"
-                );
+            document.getElementById(
+                "pdf-disponivel"
+            ).classList.add(
+                "hidden"
+            );
 
 
-            document
-                .getElementById(
-                    "pdf-indisponivel"
-                )
-                .classList.remove(
-                    "hidden"
-                );
+            document.getElementById(
+                "pdf-indisponivel"
+            ).classList.remove(
+                "hidden"
+            );
 
         }
 
 
 
-        // =================================================
-        // MOSTRAR TELA
-        // =================================================
+        // TROCAR TELA
 
-        document
-            .getElementById(
-                "tela-cadastro"
-            )
-            .classList.add(
-                "hidden"
-            );
+        document.getElementById(
+            "tela-cadastro"
+        ).classList.add(
+            "hidden"
+        );
 
 
-        document
-            .getElementById(
-                "tela-material"
-            )
-            .classList.remove(
-                "hidden"
-            );
+        document.getElementById(
+            "tela-material"
+        ).classList.remove(
+            "hidden"
+        );
 
     }
 
 
-    catch (error) {
+    catch (erro) {
 
 
         console.error(
             "ERRO AO CARREGAR:",
-            error
+            erro
         );
 
 
         alert(
             "Material não encontrado.\n\n" +
-            error.message
+            erro.message
         );
 
     }
@@ -1621,7 +1487,6 @@ async function carregarMaterial(id) {
 
 function voltarCadastro() {
 
-
     window.location.href =
         window.location.href
             .split("?")[0];
@@ -1631,7 +1496,7 @@ function voltarCadastro() {
 
 
 // =====================================================
-// INICIALIZAÇÃO
+// INICIAR
 // =====================================================
 
 async function iniciar() {
@@ -1661,7 +1526,5 @@ iniciar();
 
 </script>
 
-
 </body>
-
 </html>
