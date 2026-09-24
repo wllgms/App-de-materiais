@@ -50,7 +50,7 @@
                 </div>
                 <div>
                     <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent block">MaterialQR</span>
-                    <span class="text-[10px] text-emerald-400 font-mono block -mt-1" id="status-nuvem"><i class="fa-solid fa-cloud text-[9px] mr-1"></i>Sincronizado na Nuvem</span>
+                    <span class="text-[10px] text-emerald-400 font-mono block -mt-1" id="status-nuvem"><i class="fa-solid fa-cloud text-[9px] mr-1"></i>Firebase Ativo</span>
                 </div>
             </div>
             <nav class="flex space-x-2">
@@ -82,7 +82,7 @@
                         <h2 id="form-titulo" class="text-xl font-bold text-white flex items-center">
                             <i class="fa-solid fa-box-open text-indigo-400 mr-3"></i> Registrar / Editar Material
                         </h2>
-                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Gere um QR Code permanente com sincronização em nuvem!</p>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Gere um QR Code permanente sincronizado no Firebase!</p>
                     </div>
                     <button id="btn-cancelar-edicao" onclick="window.cancelarEdicao()" class="hidden text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-slate-300 transition">
                         Cancelar Edição
@@ -173,9 +173,7 @@
                     </button>
                 </div>
                 
-                <div id="lista-historico" class="space-y-3">
-                    <!-- Registros injetados via JS -->
-                </div>
+                <div id="lista-historico" class="space-y-3"></div>
                 
                 <div id="empty-state" class="hidden bg-slate-800/30 border border-slate-700/50 rounded-2xl p-10 text-center">
                     <i class="fa-solid fa-box-archive text-4xl text-slate-600 mb-3"></i>
@@ -189,7 +187,7 @@
             <div class="max-w-2xl mx-auto">
                 <div id="view-loading" class="text-center py-12">
                     <div class="spinner mx-auto mb-3" style="width: 40px; height: 40px;"></div>
-                    <p class="text-slate-400 text-sm">Buscando dados sincronizados da nuvem...</p>
+                    <p class="text-slate-400 text-sm">Buscando dados sincronizados do Firebase...</p>
                 </div>
 
                 <div id="view-content" class="hidden bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
@@ -220,7 +218,6 @@
                             </div>
                         </div>
 
-                        <!-- Box do PDF -->
                         <div id="box-btn-pdf" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-red-500/40 space-y-3">
                             <div class="flex items-center space-x-3">
                                 <div class="bg-red-500/20 p-2.5 rounded-xl text-red-400 shrink-0">
@@ -232,10 +229,10 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                <button id="btn-view-pdf" type="button" class="w-full bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-md cursor-pointer">
+                                <button id="btn-view-pdf" type="button" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-md cursor-pointer">
                                     <i class="fa-solid fa-eye mr-2 text-cyan-400 text-sm"></i> Visualizar PDF
                                 </button>
-                                <button id="btn-download-pdf" type="button" class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-lg shadow-red-600/30 cursor-pointer">
+                                <button id="btn-download-pdf" type="button" class="w-full bg-red-600 hover:bg-red-500 text-white font-medium py-3 px-4 rounded-xl text-xs flex items-center justify-center transition shadow-lg shadow-red-600/30 cursor-pointer">
                                     <i class="fa-solid fa-download mr-2 text-sm"></i> Baixar PDF
                                 </button>
                             </div>
@@ -289,7 +286,7 @@
     <div id="modal-confirm" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[100] no-print p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-lg font-bold text-white mb-2">Excluir Material?</h3>
-            <p class="text-sm text-slate-400 mb-6">Esta ação removerá o material da nuvem e do histórico permanentemente.</p>
+            <p class="text-sm text-slate-400 mb-6">Esta ação removerá o material da nuvem permanentemente.</p>
             <div class="flex justify-end space-x-3">
                 <button onclick="window.fecharModalConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 transition">Cancelar</button>
                 <button id="btn-confirm-delete" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition shadow-lg shadow-red-600/20">Excluir</button>
@@ -298,189 +295,81 @@
     </div>
 
     <script>
-        const CLOUD_API_BASE = "https://jsonblob.com/api/jsonBlob";
-        const DB_NAME = "MaterialQR_DB_v8";
-        const STORE_NAME = "materiais";
+        // BANCO DE DADOS EM NUVEM REALTIME (FIREBASE)
+        const FIREBASE_URL = "https://materialqr-default-rtdb.firebaseio.com/materiais";
 
         let pdfDataAtual = null;
         let pdfNomeAtual = null;
 
-        function abrirIndexedDB() {
-            return new Promise((resolve) => {
-                try {
-                    const req = indexedDB.open(DB_NAME, 1);
-                    req.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains(STORE_NAME)) {
-                            db.createObjectStore(STORE_NAME, { keyPath: "id" });
-                        }
-                    };
-                    req.onsuccess = (e) => resolve(e.target.result);
-                    req.onerror = () => resolve(null);
-                } catch(err) {
-                    resolve(null);
-                }
-            });
-        }
-
-        async function salvarLocalDB(item) {
-            try {
-                localStorage.setItem("mat_" + item.id, JSON.stringify(item));
-                let list = JSON.parse(localStorage.getItem("mat_keys") || "[]");
-                if (!list.includes(item.id)) {
-                    list.push(item.id);
-                    localStorage.setItem("mat_keys", JSON.stringify(list));
-                }
-            } catch(e) {}
-
-            try {
-                const db = await abrirIndexedDB();
-                if (db) {
-                    const tx = db.transaction(STORE_NAME, "readwrite");
-                    tx.objectStore(STORE_NAME).put(item);
-                }
-            } catch(e) {}
-        }
-
-        async function obterPorIdDB(id) {
-            try {
-                const db = await abrirIndexedDB();
-                if (db) {
-                    const res = await new Promise((resolve) => {
-                        const tx = db.transaction(STORE_NAME, "readonly");
-                        const req = tx.objectStore(STORE_NAME).get(id);
-                        req.onsuccess = () => resolve(req.result || null);
-                        req.onerror = () => resolve(null);
-                    });
-                    if (res) return res;
-                }
-            } catch(e) {}
-
-            try {
-                const raw = localStorage.getItem("mat_" + id);
-                if (raw) return JSON.parse(raw);
-            } catch(e) {}
-
-            return null;
-        }
-
-        async function obterTodosDB() {
-            let itemsMap = new Map();
-
-            try {
-                const keys = JSON.parse(localStorage.getItem("mat_keys") || "[]");
-                for (const k of keys) {
-                    const raw = localStorage.getItem("mat_" + k);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        itemsMap.set(parsed.id, parsed);
-                    }
-                }
-            } catch(e) {}
-
-            try {
-                const db = await abrirIndexedDB();
-                if (db) {
-                    const idbItems = await new Promise((resolve) => {
-                        const tx = db.transaction(STORE_NAME, "readonly");
-                        const req = tx.objectStore(STORE_NAME).getAll();
-                        req.onsuccess = () => resolve(req.result || []);
-                        req.onerror = () => resolve([]);
-                    });
-                    idbItems.forEach(item => itemsMap.set(item.id, item));
-                }
-            } catch(e) {}
-
-            return Array.from(itemsMap.values());
-        }
-
-        async function deletarDB(id) {
-            try {
-                localStorage.removeItem("mat_" + id);
-                let list = JSON.parse(localStorage.getItem("mat_keys") || "[]");
-                list = list.filter(k => k !== id);
-                localStorage.setItem("mat_keys", JSON.stringify(list));
-            } catch(e) {}
-
-            try {
-                const db = await abrirIndexedDB();
-                if (db) {
-                    const tx = db.transaction(STORE_NAME, "readwrite");
-                    tx.objectStore(STORE_NAME).delete(id);
-                }
-            } catch(e) {}
-        }
-
-        // FUNÇÃO CORRIGIDA PARA DEVOLVER O ID DE FORMA SEGURA
         async function salvarNaNuvem(item) {
-            await salvarLocalDB(item);
-
             try {
-                if (item.cloudId) {
-                    const res = await fetch(`${CLOUD_API_BASE}/${item.cloudId}`, {
+                if (item.id && !item.id.startsWith('mat_temp_')) {
+                    // Atualizar material existente
+                    const res = await fetch(`${FIREBASE_URL}/${item.id}.json`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(item)
                     });
-                    if (!res.ok) throw new Error("Erro ao atualizar dados na nuvem");
+                    if (!res.ok) throw new Error("Erro ao atualizar no Firebase");
                     return item;
                 } else {
-                    const res = await fetch(CLOUD_API_BASE, {
+                    // Cadastrar novo material
+                    const res = await fetch(`${FIREBASE_URL}.json`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(item)
                     });
-
                     if (res.ok) {
-                        let cloudId = null;
-                        const locationHeader = res.headers.get('Location') || res.headers.get('location');
-                        const jsonblobIdHeader = res.headers.get('x-jsonblob-id') || res.headers.get('X-JsonBlob-Id');
-
-                        if (locationHeader) {
-                            cloudId = locationHeader.split('/').pop();
-                        } else if (jsonblobIdHeader) {
-                            cloudId = jsonblobIdHeader;
-                        }
-
-                        if (cloudId) {
-                            item.cloudId = cloudId;
-                            item.id = cloudId;
-                            await salvarLocalDB(item);
-                            
-                            await fetch(`${CLOUD_API_BASE}/${cloudId}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                                body: JSON.stringify(item)
-                            });
-                        }
-                        return item;
-                    } else {
-                        console.warn("Erro da API na nuvem. Usando storage local.");
+                        const data = await res.json();
+                        item.id = data.name; // ID Único gerado pelo Firebase
+                        item.cloudId = data.name;
+                        
+                        // Atualiza o registro com o ID próprio
+                        await fetch(`${FIREBASE_URL}/${data.name}.json`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: data.name, cloudId: data.name })
+                        });
                         return item;
                     }
                 }
             } catch(err) {
-                console.warn("Aviso de sincronização em nuvem:", err);
-                return item;
+                console.error("Erro no Firebase:", err);
             }
+            return item;
         }
 
         async function buscarDaNuvem(id) {
             try {
-                const res = await fetch(`${CLOUD_API_BASE}/${id}`, {
-                    headers: { 'Accept': 'application/json' }
-                });
+                const res = await fetch(`${FIREBASE_URL}/${id}.json`);
                 if (res.ok) {
-                    const itemData = await res.json();
-                    if (itemData && (itemData.id || itemData.cloudId)) {
-                        await salvarLocalDB(itemData);
-                        return itemData;
-                    }
+                    const data = await res.json();
+                    return data;
                 }
             } catch(e) {
-                console.error("Erro ao buscar da nuvem:", e);
+                console.error("Erro ao buscar no Firebase:", e);
             }
-            return await obterPorIdDB(id);
+            return null;
+        }
+
+        async function obterTodosNuvem() {
+            try {
+                const res = await fetch(`${FIREBASE_URL}.json`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data) return [];
+                    return Object.keys(data).map(key => ({ ...data[key], id: key }));
+                }
+            } catch(e) {
+                console.error(e);
+            }
+            return [];
+        }
+
+        async function deletarNuvem(id) {
+            try {
+                await fetch(`${FIREBASE_URL}/${id}.json`, { method: 'DELETE' });
+            } catch(e) {}
         }
 
         window.lidarUploadPdf = function(e) {
@@ -535,14 +424,8 @@
             window.setLoadingState(true);
 
             try {
-                let existingItem = null;
-                if (idDoc) {
-                    existingItem = await obterPorIdDB(idDoc);
-                }
-
                 const dataObj = { 
-                    id: idDoc || ('mat_temp_' + Date.now()),
-                    cloudId: existingItem ? existingItem.cloudId : null,
+                    id: idDoc || null,
                     nome, 
                     dimensoes, 
                     os, 
@@ -556,7 +439,7 @@
                 const itemSalvo = await salvarNaNuvem(dataObj);
 
                 window.setLoadingState(false);
-                window.mostrarMensagem("Material salvo! QR Code pronto.", "sucesso");
+                window.mostrarMensagem("Material salvo no Firebase! QR Code gerado.", "sucesso");
                 
                 window.gerarVisualizacaoQR(itemSalvo);
                 
@@ -571,7 +454,7 @@
             } catch(e) {
                 window.setLoadingState(false);
                 console.error(e);
-                window.mostrarMensagem("Erro inesperado ao processar os dados.", "erro");
+                window.mostrarMensagem("Erro ao conectar com a nuvem.", "erro");
             }
         };
 
@@ -581,8 +464,7 @@
             document.getElementById('card-qr-gerado').classList.remove('hidden');
             
             const urlAtual = window.location.href.split('?')[0];
-            const targetId = item.cloudId || item.id;
-            const viewUrl = `${urlAtual}?view_id=${targetId}`;
+            const viewUrl = `${urlAtual}?view_id=${item.id}`;
             
             new QRCode(document.getElementById("qrcode-container"), {
                 text: viewUrl,
@@ -687,9 +569,9 @@
             const listaEl = document.getElementById('lista-historico');
             const emptyEl = document.getElementById('empty-state');
             
-            listaEl.innerHTML = `<div class="text-center py-8"><span class="spinner inline-block mx-auto"></span><p class="text-sm text-slate-400 mt-2">Carregando registros...</p></div>`;
+            listaEl.innerHTML = `<div class="text-center py-8"><span class="spinner inline-block mx-auto"></span><p class="text-sm text-slate-400 mt-2">Buscando do Firebase...</p></div>`;
             
-            const itens = await obterTodosDB();
+            const itens = await obterTodosNuvem();
             
             if(itens.length === 0) {
                 listaEl.innerHTML = "";
@@ -700,20 +582,8 @@
             emptyEl.classList.add('hidden');
             listaEl.innerHTML = "";
             
-            itens.sort((a,b) => {
-                if(!a.dataAtualizacao) return 1;
-                if(!b.dataAtualizacao) return -1;
-                return b.dataAtualizacao.localeCompare(a.dataAtualizacao);
-            });
-            
             itens.forEach(item => {
-                const targetId = item.cloudId || item.id;
-                const viewUrl = `${window.location.href.split('?')[0]}?view_id=${targetId}`;
-                
-                const cloudIcon = item.cloudId 
-                    ? `<span class="text-[10px] text-emerald-400 font-mono bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20" title="Sincronizado na nuvem"><i class="fa-solid fa-cloud mr-1"></i>Nuvem OK</span>`
-                    : `<span class="text-[10px] text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20"><i class="fa-solid fa-hard-drive mr-1"></i>Local</span>`;
-                
+                const viewUrl = `${window.location.href.split('?')[0]}?view_id=${item.id}`;
                 const pdfBadge = item.pdfData 
                     ? `<span class="text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20" title="Contém PDF"><i class="fa-solid fa-file-pdf"></i></span>` 
                     : "";
@@ -725,7 +595,7 @@
                     <div class="flex-grow min-w-0">
                         <div class="flex items-center space-x-2 mb-1.5">
                             <span class="inline-block bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono tracking-wider border border-indigo-500/30">OS: ${item.os || '-'}</span>
-                            ${cloudIcon}
+                            <span class="text-[10px] text-emerald-400 font-mono bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20"><i class="fa-solid fa-cloud mr-1"></i>Firebase</span>
                             ${pdfBadge}
                         </div>
                         <h3 class="font-bold text-white text-base sm:text-lg truncate">${item.nome}</h3>
@@ -739,7 +609,7 @@
                         <button onclick="window.editarMaterial('${item.id}')" class="flex-1 sm:flex-none bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl text-xs font-semibold transition">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button onclick="window.confirmarExclusao('${item.id}', '${item.cloudId || ''}')" class="flex-1 sm:flex-none bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/20">
+                        <button onclick="window.confirmarExclusao('${item.id}')" class="flex-1 sm:flex-none bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/20">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -749,9 +619,9 @@
         };
 
         window.editarMaterial = async function(id) {
-            const item = await obterPorIdDB(id);
+            const item = await buscarDaNuvem(id);
             if(!item) {
-                window.mostrarMensagem("Erro ao carregar dados para edição.", "erro");
+                window.mostrarMensagem("Erro ao carregar dados.", "erro");
                 return;
             }
             
@@ -795,11 +665,9 @@
         };
 
         let idParaExcluir = null;
-        let cloudIdParaExcluir = null;
 
-        window.confirmarExclusao = function(id, cloudId) {
+        window.confirmarExclusao = function(id) {
             idParaExcluir = id;
-            cloudIdParaExcluir = cloudId;
             document.getElementById('modal-confirm').classList.remove('hidden');
             document.getElementById('modal-confirm').classList.add('flex');
         };
@@ -808,26 +676,16 @@
             document.getElementById('modal-confirm').classList.add('hidden');
             document.getElementById('modal-confirm').classList.remove('flex');
             idParaExcluir = null;
-            cloudIdParaExcluir = null;
         };
         
         document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
             if(!idParaExcluir) return;
             
             const btn = this;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<span class="spinner inline-block mr-2" style="width: 14px; height: 14px; border-width: 2px;"></span> Excluindo...`;
             btn.disabled = true;
             
             try {
-                if(cloudIdParaExcluir) {
-                    try {
-                         await fetch(`${CLOUD_API_BASE}/${cloudIdParaExcluir}`, { method: 'DELETE' });
-                    } catch(e) {}
-                }
-                
-                await deletarDB(idParaExcluir);
-                
+                await deletarNuvem(idParaExcluir);
                 window.mostrarMensagem("Registro excluído com sucesso.", "sucesso");
                 window.fecharModalConfirm();
                 
@@ -836,11 +694,9 @@
                 }
                 
                 window.carregarHistoricoNuvem();
-                
             } catch(e) {
                 window.mostrarMensagem("Erro ao excluir registro.", "erro");
             } finally {
-                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         });
@@ -871,7 +727,7 @@
                         if(item.dataAtualizacao) {
                             const pData = document.createElement('p');
                             pData.className = "text-[10px] text-slate-500 mt-6 text-center italic border-t border-slate-800 pt-3";
-                            pData.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> Última atualização na nuvem: ${item.dataAtualizacao}`;
+                            pData.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> Sincronizado no Firebase em: ${item.dataAtualizacao}`;
                             contentBox.appendChild(pData);
                         }
 
@@ -903,7 +759,7 @@
                                     <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400"></i>
                                 </div>
                                 <h2 class="text-xl font-bold text-white mb-2">Registro Não Encontrado</h2>
-                                <p class="text-slate-400 text-sm mb-6">Este material pode ter sido excluído da nuvem ou o link está incorreto.</p>
+                                <p class="text-slate-400 text-sm mb-6">Este material pode ter sido excluído ou o link está incorreto.</p>
                                 <button onclick="window.limparEVoltar()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition shadow-lg w-full">
                                     Acessar Sistema
                                 </button>
@@ -913,7 +769,7 @@
                 } catch(e) {
                     document.getElementById('view-loading').innerHTML = `
                         <div class="text-red-400 mb-2"><i class="fa-solid fa-wifi text-3xl"></i></div>
-                        <p class="text-slate-300">Falha ao comunicar com a nuvem.</p>
+                        <p class="text-slate-300">Falha ao comunicar com o servidor.</p>
                         <button onclick="location.reload()" class="mt-4 bg-slate-700 px-4 py-2 rounded-lg text-sm text-white">Tentar Novamente</button>
                     `;
                 }
